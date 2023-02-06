@@ -1,5 +1,19 @@
+# Development
+node_modules
+
+# Artifacts
+dist
+
+# System
+.DS_Store
+._
+
+# IDEs
+.vscode
+.idea
+*.iml
 # vscode
-.vscode 
+.vscode
 
 # Intellij
 *.iml

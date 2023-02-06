@@ -1,0 +1,12 @@
+{
+    "printWidth": 120,
+    "tabWidth": 4,
+    "useTabs": true,
+    "trailingComma": "all",
+    "singleQuote": true,
+    "semi": true,
+
+    "importOrder": ["^(?!obsidian|\\.{1,2}\/).+", "^obsidian", "^\\.\\./", "^\\./"],
+    "importOrderSeparation": true,
+    "importOrderSortSpecifiers": true
+}
