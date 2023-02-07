@@ -1,0 +1,25 @@
+# Sources
+/api
+/src
+
+# Obsidian
+/versions.json
+/dist/main.js
+/dist/styles.css
+/dist/manifest.json
+
+# Development
+node_modules
+/esbuild*.mjs
+
+# Artifacts
+*.tsbuildinfo
+
+# System
+.DS_Store
+._*
+
+# IDEs
+.vscode
+.idea
+*.iml

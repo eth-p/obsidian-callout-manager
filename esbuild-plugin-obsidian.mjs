@@ -22,7 +22,6 @@ export default function esbuildObsidian(options) {
 
 				const manifestJsonFile = destinationFile(build, manifestFile, 'manifest.json');
 				const versionsJsonFile = destinationFile(build, versionsFile, 'versions.json');
-				console.log(manifestJsonFile);
 
 				await ensureDir(dirname(manifestJsonFile));
 				await ensureDir(dirname(versionsJsonFile));
