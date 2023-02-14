@@ -1,24 +1,81 @@
 import {
-	// App,
+	App, // App,
 	// Editor,
 	// MarkdownFileInfo,
 	// MarkdownView,
 	// Modal,
 	// Notice,
 	Plugin,
-	// PluginSettingTab,
+	PluginSettingTab, // PluginSettingTab,
 	// Setting,
 } from 'obsidian';
 
-import Settings from './settings';
+import type { CalloutManager } from '../api';
 
-// Remember to rename these classes and interfaces!
+import { CalloutManagerAPI_V1 } from './api-v1';
+import { CalloutCollection } from './callout-collection';
+import { CalloutResolver } from './callout-resolver';
+import { getCalloutsFromCSS } from './css-parser';
+import StylesheetWatcher, { ObsidianStylesheet, SnippetStylesheet, ThemeStylesheet } from './css-watcher';
+import Settings from './settings';
+import { CalloutSettings } from './settings/callout-settings';
+import { PluginSettings } from './settings/plugin-settings';
+import { UIModal } from './ui/UIModal';
+import { UISettingTab } from './ui/UISettingTab';
 
 export default class CalloutManagerPlugin extends Plugin {
-	settings!: Settings;
+	private settings!: Settings;
+	private cssWatcher!: StylesheetWatcher;
+	private calloutResolver!: CalloutResolver;
+
+	public callouts!: CalloutCollection;
+	// private removeStyles: CleanupFunction;
 
 	async onload() {
 		await this.loadSettings();
+
+		// Create the callout resolver.
+		// This needs to be created as early as possible to ensure the Obsidian stylesheet within the shadow DOM has loaded.
+		this.calloutResolver = new CalloutResolver();
+		this.register(() => this.calloutResolver.unload());
+
+		// Create the callout collection.
+		// Use getCalloutProperties to resolve the callout's color and icon.
+		this.callouts = new CalloutCollection((id) => {
+			const { icon, color } = this.calloutResolver.getCalloutProperties(id);
+			return {
+				id,
+				icon,
+				color,
+			};
+		});
+
+		// Create the stylesheet watcher.
+		// This will let us update the callout collection whenever any styles change.
+		this.cssWatcher = new StylesheetWatcher(this.app);
+		this.cssWatcher.on('add', this.updateCalloutSource.bind(this));
+		this.cssWatcher.on('change', this.updateCalloutSource.bind(this));
+		this.cssWatcher.on('remove', this.removeCalloutSource.bind(this));
+		this.app.workspace.onLayoutReady(() => {
+			this.register(this.cssWatcher.watch());
+		});
+
+		// DEBUG: Testing
+		(window as any).TEST = this.callouts;
+		this.register(() => ((window as any).TEST = null));
+
+		// Register setting tab.
+		this.addSettingTab(new UISettingTab(this.app, this, () => [new PluginSettings(this)]));
+
+		// Register modal commands.
+		this.addCommand({
+			id: 'manage-callouts',
+			name: 'Edit callouts',
+			callback: () => {
+				new UIModal(this.app, () => [new PluginSettings(this)]).open();
+				// new UIModal(this.app, () => new CalloutSettings(this)).open();
+			},
+		});
 
 		// // This creates an icon in the left ribbon.
 		// const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
@@ -33,13 +90,7 @@ export default class CalloutManagerPlugin extends Plugin {
 		// statusBarItemEl.setText('Status Bar Text');
 
 		// // This adds a simple command that can be triggered anywhere
-		// this.addCommand({
-		// 	id: 'open-sample-modal-simple',
-		// 	name: 'Open sample modal (simple)',
-		// 	callback: () => {
-		// 		new SampleModal(this.app).open();
-		// 	},
-		// });
+
 		// // This adds an editor command that can perform some operation on the current editor instance
 		// this.addCommand({
 		// 	id: 'sample-editor-command',
@@ -91,51 +142,79 @@ export default class CalloutManagerPlugin extends Plugin {
 	async saveSettings() {
 		await this.saveData(this.settings);
 	}
+
+	/**
+	 * Takes in a stylesheet from the watcher and updates the callout collection.
+	 * @param ss The stylesheet.
+	 */
+	protected updateCalloutSource(ss: ThemeStylesheet | ObsidianStylesheet | SnippetStylesheet): void {
+		const callouts = getCalloutsFromCSS(ss.styles);
+		switch (ss.type) {
+			case 'obsidian':
+				this.callouts.builtin.set(callouts);
+				return;
+
+			case 'theme':
+				this.callouts.theme.set(ss.theme, callouts);
+				return;
+
+			case 'snippet':
+				this.callouts.snippets.set(ss.snippet, callouts);
+				return;
+		}
+	}
+
+	/**
+	 * Takes in a stylesheet from the watcher and removes its callouts from the callout collection.
+	 * @param ss The stylesheet.
+	 */
+	protected removeCalloutSource(ss: ThemeStylesheet | ObsidianStylesheet | SnippetStylesheet) {
+		switch (ss.type) {
+			case 'obsidian':
+				this.callouts.builtin.set([]);
+				return;
+
+			case 'theme':
+				this.callouts.theme.delete();
+				return;
+
+			case 'snippet':
+				this.callouts.snippets.delete(ss.snippet);
+				return;
+		}
+	}
+
+	/**
+	 * Creates an instance of the Callout Manager API for a plugin.
+	 * If the plugin is undefined, only trivial functions are available.
+	 *
+	 * @param version The API version.
+	 * @param consumerPlugin The plugin using the API.
+	 *
+	 * @internal
+	 */
+	public newApiHandle(version: 'v1', consumerPlugin: Plugin | undefined): CalloutManager {
+		return new CalloutManagerAPI_V1();
+	}
 }
 
-// class SampleModal extends Modal {
-// 	constructor(app: App) {
-// 		super(app);
-// 	}
+export class CalloutManagerSettingTab extends PluginSettingTab {
+	private plugin: CalloutManagerPlugin;
+	private stack?: PaneStack;
+	private stackContainerEl?: HTMLElement;
 
-// 	onOpen() {
-// 		const { contentEl } = this;
-// 		contentEl.setText('Woah!');
-// 	}
+	public constructor(app: App, plugin: CalloutManagerPlugin) {
+		super(app, plugin);
+		this.plugin = plugin;
+	}
 
-// 	onClose() {
-// 		const { contentEl } = this;
-// 		contentEl.empty();
-// 	}
-// }
+	public display() {
+		if (this.stackContainerEl != this.containerEl) {
+			this.stackContainerEl = this.containerEl;
+			this.stack = new PaneStack([new PluginSettings(this.plugin)]);
+			this.stack.containerEl = this.containerEl;
+		}
 
-// class SampleSettingTab extends PluginSettingTab {
-// 	plugin: MyPlugin;
-
-// 	constructor(app: App, plugin: MyPlugin) {
-// 		super(app, plugin);
-// 		this.plugin = plugin;
-// 	}
-
-// 	display(): void {
-// 		const { containerEl } = this;
-
-// 		containerEl.empty();
-
-// 		containerEl.createEl('h2', { text: 'Settings for my awesome plugin.' });
-
-// 		new Setting(containerEl)
-// 			.setName('Setting #1')
-// 			.setDesc("It's a secret")
-// 			.addText((text) =>
-// 				text
-// 					.setPlaceholder('Enter your secret')
-// 					.setValue(this.plugin.settings.mySetting)
-// 					.onChange(async (value) => {
-// 						console.log('Secret: ' + value);
-// 						this.plugin.settings.mySetting = value;
-// 						await this.plugin.saveSettings();
-// 					}),
-// 			);
-// 	}
-// }
+		this.stack?.render();
+	}
+}

@@ -1,0 +1,41 @@
+// Inside a modal: the padding is removed so we can create a sticky header.
+.callout-manager-modal.modal {
+	padding: 0;
+	overflow: hidden;
+	display: flex;
+
+	> .modal-title {
+		margin-bottom: 0;
+
+		body.is-phone & {
+			display: flex !important;
+		}
+	}
+
+	> .modal-title > .callout-manager-pane-header {
+		// Account for the size of the close button.
+		padding-right: calc(24px + 2*var(--size-2-3) + var(--size-4-12));
+		min-height: calc(24px + 2*var(--size-2-3));
+	}
+
+	> .modal-title > .callout-manager-pane-header > h2 {
+		margin: 0;
+		font-size: 1em;
+		font-weight: normal;
+	}
+
+	> .modal-content {
+		display: flex;
+		min-height: 0; // Prevents the container from overflowing.
+	}
+
+	.callout-manager-pane-header {
+		body.is-phone & {
+			background-color: var(--modal-background);
+		}
+	}
+
+	.callout-manager-pane-content {
+		padding: var(--size-4-4);
+	}
+}
