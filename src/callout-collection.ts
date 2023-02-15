@@ -120,6 +120,9 @@ export class CalloutCollection {
 				this.addCalloutSource(callout, source);
 			}
 		}
+
+		// Mark as cached so we don't rebuild unnecessarily.
+		this.cached = true;
 	}
 
 	protected addCalloutSource(id: string, sourceKey: string) {
