@@ -20,6 +20,58 @@ export class CalloutResolver {
 	}
 
 	/**
+	 * Reloads the styles of the callout resolver.
+	 * This is necessary to get up-to-date styles when the application CSS changes.
+	 *
+	 * Note: This will not reload the Obsidian app.css stylesheet.
+	 * @param styles The new style elements to use.
+	 */
+	public reloadStyles(styles?: HTMLStyleElement[]) {
+		// If no style elements were provided, fetch them form the document head.
+		if (styles === undefined) {
+			styles = [];
+			for (let node = window.document.head.firstElementChild; node != null; node = node.nextElementSibling) {
+				if (node.tagName === 'STYLE') {
+					styles.push(node as HTMLStyleElement);
+				}
+			}
+		}
+
+		// Get the top of the shadow DOM.
+		let shadowBody = this.calloutElement.parentElement as HTMLElement;
+		while (shadowBody?.parentElement != null) {
+			shadowBody = shadowBody.parentElement;
+		}
+
+		// Remove all style elements in the callout's shadow DOM.
+		// The first non-style element is where we should start inserting new styles.
+		let prevSibling = shadowBody.previousElementSibling;
+		let firstNonStyleSibling = null;
+		while (prevSibling != null) {
+			if (prevSibling.tagName === 'STYLE') {
+				const styleSibling = prevSibling;
+				prevSibling = prevSibling.previousElementSibling;
+				styleSibling.detach();
+				continue;
+			}
+
+			if (firstNonStyleSibling == null) {
+				firstNonStyleSibling = prevSibling;
+			}
+
+			prevSibling = prevSibling.previousElementSibling;
+		}
+
+		// Add new style elements.
+		prevSibling = firstNonStyleSibling;
+		for (const style of styles) {
+			const styleClone = style.cloneNode(true) as HTMLStyleElement;
+			prevSibling?.insertAdjacentElement('afterend', styleClone);
+			prevSibling = styleClone;
+		}
+	}
+
+	/**
 	 * Removes the host element.
 	 * This should be called when the plugin is unloading.
 	 */

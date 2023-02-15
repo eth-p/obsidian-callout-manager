@@ -1,13 +1,10 @@
 import {
-	App, // App,
 	// Editor,
 	// MarkdownFileInfo,
 	// MarkdownView,
 	// Modal,
 	// Notice,
-	Plugin,
-	PluginSettingTab, // PluginSettingTab,
-	// Setting,
+	Plugin, // Setting,
 } from 'obsidian';
 
 import type { CalloutManager } from '../api';
@@ -18,10 +15,9 @@ import { CalloutResolver } from './callout-resolver';
 import { getCalloutsFromCSS } from './css-parser';
 import StylesheetWatcher, { ObsidianStylesheet, SnippetStylesheet, ThemeStylesheet } from './css-watcher';
 import Settings from './settings';
-import { CalloutSettings } from './settings/callout-settings';
-import { PluginSettings } from './settings/plugin-settings';
-import { UIModal } from './ui/UIModal';
-import { UISettingTab } from './ui/UISettingTab';
+import { CMSettingTab } from './settings/CMSettingTab';
+import { ManageCalloutsPane } from './settings/ManageCalloutsPane';
+import { ManagePluginPane } from './settings/ManagePluginPane';
 
 export default class CalloutManagerPlugin extends Plugin {
 	private settings!: Settings;
@@ -31,13 +27,17 @@ export default class CalloutManagerPlugin extends Plugin {
 	public callouts!: CalloutCollection;
 	// private removeStyles: CleanupFunction;
 
+	private settingTab!: CMSettingTab;
+
 	async onload() {
 		await this.loadSettings();
 
 		// Create the callout resolver.
 		// This needs to be created as early as possible to ensure the Obsidian stylesheet within the shadow DOM has loaded.
+		// We also register an event to ensure that it tracks any changes to the loaded styles.
 		this.calloutResolver = new CalloutResolver();
 		this.register(() => this.calloutResolver.unload());
+		this.registerEvent(this.app.workspace.on('css-change', () => this.calloutResolver.reloadStyles()));
 
 		// Create the callout collection.
 		// Use getCalloutProperties to resolve the callout's color and icon.
@@ -61,19 +61,19 @@ export default class CalloutManagerPlugin extends Plugin {
 		});
 
 		// DEBUG: Testing
-		(window as any).TEST = this.callouts;
+		(window as any).TEST = this.calloutResolver;
 		this.register(() => ((window as any).TEST = null));
 
 		// Register setting tab.
-		this.addSettingTab(new UISettingTab(this.app, this, () => [new PluginSettings(this)]));
+		this.settingTab = new CMSettingTab(this, () => new ManagePluginPane(this));
+		this.addSettingTab(this.settingTab);
 
 		// Register modal commands.
 		this.addCommand({
 			id: 'manage-callouts',
 			name: 'Edit callouts',
 			callback: () => {
-				new UIModal(this.app, () => [new PluginSettings(this)]).open();
-				// new UIModal(this.app, () => new CalloutSettings(this)).open();
+				this.settingTab.openWithPane(new ManageCalloutsPane(this));
 			},
 		});
 
@@ -195,26 +195,5 @@ export default class CalloutManagerPlugin extends Plugin {
 	 */
 	public newApiHandle(version: 'v1', consumerPlugin: Plugin | undefined): CalloutManager {
 		return new CalloutManagerAPI_V1();
-	}
-}
-
-export class CalloutManagerSettingTab extends PluginSettingTab {
-	private plugin: CalloutManagerPlugin;
-	private stack?: PaneStack;
-	private stackContainerEl?: HTMLElement;
-
-	public constructor(app: App, plugin: CalloutManagerPlugin) {
-		super(app, plugin);
-		this.plugin = plugin;
-	}
-
-	public display() {
-		if (this.stackContainerEl != this.containerEl) {
-			this.stackContainerEl = this.containerEl;
-			this.stack = new PaneStack([new PluginSettings(this.plugin)]);
-			this.stack.containerEl = this.containerEl;
-		}
-
-		this.stack?.render();
 	}
 }

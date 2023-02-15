@@ -43,11 +43,11 @@ export function createCalloutPreview(
 	calloutEl.setAttribute('data-callout', id);
 
 	if (options?.overrideColor != null) {
-		calloutEl.style.setProperty('--color-color', options.overrideColor);
+		calloutEl.style.setProperty('--callout-color', options.overrideColor);
 	}
 
 	if (options?.overrideIcon != null) {
-		calloutEl.style.setProperty('--color-color', options.overrideIcon);
+		calloutEl.style.setProperty('--callout-icon', options.overrideIcon);
 	}
 
 	// Fetch the custom properties from the callout.
@@ -126,7 +126,7 @@ export function createIsolatedCalloutPreview(
 		(() => {
 			const els = [];
 			let node = window.document.head.firstElementChild;
-			for (; node?.nextElementSibling != null; node = node.nextElementSibling) {
+			for (; node != null; node = node.nextElementSibling) {
 				const nodeTag = node.tagName;
 				if (
 					nodeTag === 'STYLE' ||

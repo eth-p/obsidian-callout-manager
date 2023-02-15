@@ -1,0 +1,10 @@
+// Reset the blend mode of the preview.
+// The rendering of the callouts will be broken unless this is reset.
+.callout.callout-manager-preview {
+	mix-blend-mode: unset !important;
+}
+
+.callout-manager-preview-container {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}

@@ -1,4 +1,5 @@
 {
+	"exclude": ["dist/**/*", "src/**/*.test.ts", "src/test-util.ts"],
 	"compilerOptions": {
 		"lib": ["DOM", "ES5", "ES6", "ES7"],
 		"inlineSourceMap": true,

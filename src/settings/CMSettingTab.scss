@@ -1,0 +1,134 @@
+// The setting tab container.
+.mod-sidebar-layout .callout-manager-setting-tab.vertical-tab-content {
+	position: relative;
+	padding: 0 !important;
+	display: flex;
+	flex-direction: column;
+
+	// Prevent scrolling on the parent container so we can have a sticky header.
+	overflow-y: initial;
+}
+
+// The setting tab header.
+.callout-manager-setting-tab-header {
+	display: flex;
+	align-items: center;
+
+	// Padding to mimic the sizing of the `.vertical-tab-content`
+	padding-top: var(--size-4-1);
+	padding-bottom: var(--size-4-1);
+	padding-right: var(--size-4-2);
+
+	// Bottom border to separate the header from the content.
+	border-bottom: 1px solid var(--background-modifier-border);
+
+	// Use the background of the sidebar.
+	background-color: var(--background-secondary);
+
+	body.is-phone & {
+		background-color: var(--background-primary);
+	}
+}
+
+// The setting tab nav within the header.
+.callout-manager-setting-tab-nav {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	// Ensure the nav is at least as big as a button.
+	min-width: var(--size-4-12);
+	min-height: calc(var(--size-4-2) + var(--input-height));
+
+	// Override the button padding.
+	button {
+		padding: var(--size-4-1) var(--size-4-2);
+		box-shadow: none;
+	}
+
+	// Reduce padding for mobile.
+	body.is-mobile & {
+		padding: var(--size-4-2);
+	}
+
+	body.is-phone &,
+	body.is-phone & button {
+		height: 100%;
+		min-width: unset;
+	}
+}
+
+// The setting tab nav within the header.
+.callout-manager-setting-tab-controls {
+	flex: 1 2 auto;
+
+	display: flex;
+	align-items: center;
+	justify-content: end;
+
+	// Set a margin that allows the controls to become padding if there's nothing inside them.
+	padding-left: calc(var(--size-4-12) - (var(--size-4-2) - var(--size-4-1)));
+
+	// Make the real control elements transparent to the container.
+	> *:not(.modal-close-button) {
+		display: contents;
+
+		> input[type="text"] {
+			flex: 1 1 auto;
+		}
+	}
+}
+
+.callout-manager-setting-tab-controls .modal-close-button {
+	flex: 0 0 auto;
+	margin-left: var(--size-4-2);
+
+	position: static;
+	left: unset;
+	top: 0;
+	right: 0;
+	bottom: 0;
+}
+
+// The setting tab title within the header.
+.callout-manager-setting-tab-title {
+	flex: 1 1 auto;
+
+	h2,
+	h3 {
+		margin: 0;
+	}
+
+	body:not(.is-phone) & h3 {
+		font-size: 0.8em;
+	}
+
+	body.is-phone & h2:has(+h3) {
+		display: none;
+	}
+}
+
+// The scroll container for the setting tab.
+.callout-manager-setting-tab-viewport {
+	flex: 1 1 auto;
+
+	// Enable scrolling.
+	overflow-y: auto;
+	-webkit-overflow-scrolling: touch;
+}
+
+.callout-manager-setting-tab-content {
+	flex: 1 1 auto;
+	min-height: 100%;
+}
+
+// A centered box to help display help messages for empty searches.
+.callout-manager-setting-centerbox {
+	width: 100%;
+	height: 100%;
+
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}

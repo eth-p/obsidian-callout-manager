@@ -1,0 +1,16 @@
+.callout-manager-search-error {
+	width: 60%;
+
+	body.is-phone & {
+		width: 100%;
+	}
+
+	code {
+		word-break: break-all;
+		color: var(--text-accent);
+	}
+}
+
+.callout-manager-search-error-suggestions {
+	color: var(--text-muted);
+}
