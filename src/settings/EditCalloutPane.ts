@@ -34,7 +34,6 @@ export class EditCalloutPane extends CMSettingPane {
 		this.plugin = plugin;
 		this.viewOnly = viewOnly;
 		this.title = { title: 'Callout', subtitle: id };
-		(window as any).TEST2 = this;
 
 		// Get the callout information.
 		this.calloutHasIconReady = false;

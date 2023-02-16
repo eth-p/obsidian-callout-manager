@@ -3,7 +3,7 @@ import { HSV, RGB } from 'color-convert/conversions';
 
 import { SearchResult, TextComponent, getIcon, prepareFuzzySearch } from 'obsidian';
 
-import { Callout, CalloutProperties } from '../../api';
+import { Callout } from '../../api';
 import { CalloutPreview, createCalloutPreview } from '../callout-preview';
 import { getColorFromCallout } from '../callout-resolver';
 import CalloutManagerPlugin from '../main';
@@ -324,11 +324,24 @@ function createEmptySearchResultDiv(): { searchErrorDiv: HTMLElement; searchErro
 	contentEl.createDiv({ cls: 'callout-manager-search-error-suggestions' }, (el) => {
 		el.createDiv({ text: 'Try searching:' });
 		el.createEl('ul', undefined, (el) => {
-			el.createEl('li', { text: 'By name (example: "warning")' });
-			el.createEl('li', { text: 'By icon (example: "icon:check")' });
-			el.createEl('li', { text: 'Built-in callouts (example: "from:obsidian")' });
-			el.createEl('li', { text: 'Theme callouts (example: "from:theme")' });
-			el.createEl('li', { text: 'Snippet callouts (example: "from:my snippet")' });
+			el.createEl('li', { text: 'By name: ' }, (el) => {
+				el.createEl('code', { text: 'warning' });
+			});
+			el.createEl('li', { text: 'By icon: ' }, (el) => {
+				el.createEl('code', { text: 'icon:check' });
+			});
+			el.createEl('li', { text: 'Built-in callouts: ' }, (el) => {
+				el.createEl('code', { text: 'from:obsidian' });
+			});
+			el.createEl('li', { text: 'Theme callouts: ' }, (el) => {
+				el.createEl('code', { text: 'from:theme' });
+			});
+			el.createEl('li', { text: 'Snippet callouts: ' }, (el) => {
+				el.createEl('code', { text: 'from:my snippet' });
+			});
+			el.createEl('li', { text: 'Custom callouts: ' }, (el) => {
+				el.createEl('code', { text: 'from:custom' });
+			});
 		});
 	});
 
