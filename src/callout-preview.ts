@@ -4,6 +4,7 @@ import { CalloutID, CalloutProperties } from '../api';
 
 export type CalloutPreview<AttachedToDom extends boolean = true> = {
 	calloutEl: HTMLElement;
+	contentEl: HTMLElement | undefined;
 	iconEl: HTMLElement;
 	properties: AttachedToDom extends true ? CalloutProperties : Pick<CalloutProperties, 'id'>;
 };
@@ -94,6 +95,7 @@ export function createCalloutPreview<AttachedToDom extends boolean = true>(
 	// Return the callout element and its properties.
 	return {
 		calloutEl,
+		contentEl,
 		iconEl,
 		properties: {
 			id,

@@ -3,7 +3,7 @@ import { getCurrentThemeID } from 'obsidian-extra';
 
 import { CalloutID } from '../api';
 
-import { CalloutSettings, CalloutSettingsCondition } from './settings';
+import { CalloutSettings, CalloutSettingsCondition, CalloutSettingsConditionType } from './settings';
 
 /**
  * Gets the current environment that callouts are under.
@@ -23,14 +23,21 @@ export function currentCalloutEnvironment(app: App): Parameters<typeof checkCond
 /**
  * Converts callout settings to CSS that applies the setting.
  *
- * @param condition The active conditions.
+ * @param id The callout ID.
+ * @param settings The settings for the callout.
+ * @param environment The environment to resolve conditions under.
  */
 export function calloutSettingsToCSS(
 	id: CalloutID,
 	settings: CalloutSettings,
 	environment: Parameters<typeof checkCondition>[1],
 ): string {
-	return `.callout[data-callout="${id}"] {\t` + calloutSettingsToStyles(settings, environment).join(';\t') + '\n}';
+	const styles = calloutSettingsToStyles(settings, environment).join(';\t');
+	if (styles.length === 0) {
+		return '';
+	}
+
+	return `.callout[data-callout="${id}"] {\n\t` + styles + '\n}';
 }
 
 /**
@@ -96,4 +103,34 @@ function checkCondition(
 	}
 
 	return false;
+}
+
+/**
+ * Returns true if the condition is not an elementary condition.
+ *
+ * @param condition The condition to check.
+ * @returns True if the condition is not elementary.
+ */
+export function isComplexCondition(condition: CalloutSettingsCondition): boolean {
+	const type = typeofCondition(condition);
+	return type === 'and' || type === 'or';
+}
+
+/**
+ * Returns the type of condition of the provided condition.
+ * @param condition The condition.
+ * @returns The condition type.
+ */
+export function typeofCondition(condition: CalloutSettingsCondition): CalloutSettingsConditionType | undefined {
+	if (condition === undefined) return undefined;
+	const hasOwnProperty = Object.prototype.hasOwnProperty.bind(condition) as (
+		type: CalloutSettingsConditionType,
+	) => boolean;
+
+	if (hasOwnProperty('appearance')) return 'appearance';
+	if (hasOwnProperty('theme')) return 'theme';
+	if (hasOwnProperty('and')) return 'and';
+	if (hasOwnProperty('or')) return 'or';
+
+	throw new Error(`Unsupported condition: ${JSON.stringify(condition)}`);
 }

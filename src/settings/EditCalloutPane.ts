@@ -1,13 +1,13 @@
-import { ButtonComponent, Component, MarkdownRenderer, TextAreaComponent, getIcon } from 'obsidian';
+import { ButtonComponent } from 'obsidian';
 
-import { Callout } from '../../api';
-import { IsolatedCalloutPreview, createIsolatedCalloutPreview } from '../callout-preview';
-import { calloutSettingsToCSS, currentCalloutEnvironment } from '../callout-settings';
+import { Callout, CalloutID } from '../../api';
 import CalloutManagerPlugin from '../main';
 import { CalloutSettings } from '../settings';
 
 import { CMSettingPane } from './CMSettingTab';
+import { EditCalloutPaneAppearance } from './EditCalloutPane_Appearance';
 import { renderInfo } from './EditCalloutPane_Info';
+import { EditCalloutPanePreview } from './EditCalloutPane_Preview';
 
 const IMPOSSIBLE_CALLOUT_ID = '[not a real callout]';
 
@@ -17,23 +17,17 @@ export class EditCalloutPane extends CMSettingPane {
 	private readonly plugin: CalloutManagerPlugin;
 
 	private callout: Callout;
-	private calloutPreview: IsolatedCalloutPreview<false>;
-	private calloutContainerEl: HTMLElement;
 
-	private previewContentEl!: HTMLElement;
-	private previewMarkdown = 'Lorem ipsum dolor sit amet.';
-	private previewEditorEl: HTMLTextAreaElement | null;
+	private previewSection: EditCalloutPanePreview;
+	private appearanceSection: EditCalloutPaneAppearance;
 
-	private calloutHasIconReady: boolean;
-
-	public constructor(plugin: CalloutManagerPlugin, id: string, viewOnly: boolean) {
+	public constructor(plugin: CalloutManagerPlugin, id: CalloutID, viewOnly: boolean) {
 		super();
 		this.plugin = plugin;
 		this.viewOnly = viewOnly;
 		this.title = { title: 'Callout', subtitle: id };
 
 		// Get the callout information.
-		this.calloutHasIconReady = false;
 		this.callout = plugin.callouts.get(id) ?? {
 			sources: [{ type: 'custom' }],
 			...plugin.calloutResolver.getCalloutProperties(IMPOSSIBLE_CALLOUT_ID),
@@ -41,58 +35,30 @@ export class EditCalloutPane extends CMSettingPane {
 		};
 
 		// Create the callout preview.
-		const frag = document.createDocumentFragment();
-		this.calloutContainerEl = frag.createDiv(
-			'callout-manager-preview-container callout-manager-edit-callout-preview',
-		);
-		this.calloutPreview = createIsolatedCalloutPreview(this.calloutContainerEl.createDiv(), id, {
-			title: id,
-			overrideIcon: this.callout.icon,
-			contents: (containerEl) => {
-				this.previewContentEl = containerEl;
-				containerEl.createEl('p', { text: this.previewMarkdown });
+		this.previewSection = new EditCalloutPanePreview(plugin, this.callout, false);
+		this.appearanceSection = new EditCalloutPaneAppearance(
+			this.plugin,
+			this.callout,
+			plugin.getCalloutSettings(id) ?? [],
+			(settings) => {
+				this.previewSection.changeSettings(settings);
+				this.plugin.setCalloutSettings(this.callout.id, settings);
+
+				// Rerender to show what changed.
+				Object.assign(this.callout, plugin.calloutResolver.getCalloutProperties(this.callout.id));
+				this.containerEl.empty();
+				this.display();
 			},
-		});
-
-		// Add a click handler to change the preview.
-		this.previewEditorEl = null;
-		this.calloutPreview.calloutEl.addEventListener('click', () => {
-			if (this.previewEditorEl != null) {
-				return;
-			}
-
-			const height = this.previewContentEl.getBoundingClientRect().height;
-			this.previewContentEl.empty();
-			new TextAreaComponent(this.previewContentEl)
-				.setValue(this.previewMarkdown)
-				.setPlaceholder('Preview Markdown...')
-				.then((c) => {
-					const inputEl = (this.previewEditorEl = c.inputEl);
-					inputEl.style.setProperty('height', `${height}px`);
-					inputEl.classList.add('callout-manager-preview-editor');
-					inputEl.focus();
-					inputEl.addEventListener('blur', () => {
-						const value = c.getValue();
-						this.previewEditorEl = null;
-						this.previewMarkdown = value;
-						this.changePreview(value);
-					});
-				});
-		});
+		);
 	}
 
 	/** @override */
 	public display(): void {
 		const { containerEl } = this;
 
-		// Attach the callout.
-		containerEl.appendChild(this.calloutContainerEl);
-		if (!this.calloutHasIconReady) {
-			this.refreshPreviewIcon();
-		}
-
-		// Attach the rest.
+		this.previewSection.attach(containerEl);
 		renderInfo(this.plugin.app, this.callout, containerEl);
+		this.appearanceSection.attach(containerEl);
 	}
 
 	/** @override */
@@ -114,50 +80,21 @@ export class EditCalloutPane extends CMSettingPane {
 		}
 	}
 
-	public async changeSettings(settings: CalloutSettings): Promise<void> {
-		const styles = calloutSettingsToCSS(this.callout.id, settings, currentCalloutEnvironment(this.plugin.app));
-		this.calloutPreview.customStyleEl.textContent = styles;
-		this.calloutHasIconReady = false;
-	}
-
 	/**
 	 * Changes the preview that is displayed inside the callout.
 	 *
 	 * @param markdown The markdown to render.
 	 */
 	public async changePreview(markdown: string): Promise<void> {
-		this.previewContentEl.empty();
-
-		try {
-			await MarkdownRenderer.renderMarkdown(
-				markdown,
-				this.previewContentEl,
-				'',
-				undefined as unknown as Component,
-			);
-		} catch (ex) {
-			this.previewContentEl.createEl('code').createEl('pre', { text: markdown });
-		}
+		return this.previewSection.changeContent(markdown);
 	}
 
 	/**
-	 * Refreshes the callout preview's icon.
-	 * We need to do this after the preview is attached to DOM, as we can't get the correct icon until that happens.
+	 * Changes the styles of the preview that is displayed inside the callout.
+	 *
+	 * @param markdown The markdown to render.
 	 */
-	protected refreshPreviewIcon(): void {
-		const { iconEl, calloutEl } = this.calloutPreview;
-
-		if (window.document.contains(this.calloutContainerEl)) {
-			const icon = window.getComputedStyle(calloutEl).getPropertyValue('--callout-icon');
-			const iconSvg = getIcon(icon) ?? document.createElement('svg');
-
-			iconEl.empty();
-			iconEl.appendChild(iconSvg);
-
-			this.calloutHasIconReady = true;
-		}
+	public async changeSettings(settings: CalloutSettings): Promise<void> {
+		return this.previewSection.changeSettings(settings);
 	}
-
-	protected renderInfoDetails(): void {}
-	protected renderSettings(): void {}
 }

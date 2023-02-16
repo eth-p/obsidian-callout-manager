@@ -159,6 +159,8 @@
 	// Make disabled buttons look disabled.
 	button[disabled] {
 		box-shadow: none;
+		background-color: var(--interactive-normal);
+
 		&:hover {
 			background-color: var(--interactive-normal);
 			cursor: not-allowed;
@@ -168,5 +170,9 @@
 	// Make invalid text boxes look invalid.
 	input:invalid:not(:placeholder-shown) {
 		border-color: var(--text-error);
+	}
+
+	input[type='color'][disabled] {
+		cursor: not-allowed;
 	}
 }

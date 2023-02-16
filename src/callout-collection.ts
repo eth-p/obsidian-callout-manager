@@ -25,10 +25,10 @@ export class CalloutCollection {
 		this.cacheById = new Map();
 		this.cached = false;
 
-		this.snippets = new CalloutCollectionSnippets(this.invalidate.bind(this));
-		this.builtin = new CalloutCollectionObsidian(this.invalidate.bind(this));
-		this.theme = new CalloutCollectionTheme(this.invalidate.bind(this));
-		this.custom = new CalloutCollectionCustom(this.invalidate.bind(this));
+		this.snippets = new CalloutCollectionSnippets(this.invalidateSource.bind(this));
+		this.builtin = new CalloutCollectionObsidian(this.invalidateSource.bind(this));
+		this.theme = new CalloutCollectionTheme(this.invalidateSource.bind(this));
+		this.custom = new CalloutCollectionCustom(this.invalidateSource.bind(this));
 	}
 
 	public get(id: CalloutID): Callout | undefined {
@@ -146,6 +146,20 @@ export class CalloutCollection {
 		this.cached = true;
 	}
 
+	/**
+	 * Marks a callout as invalidated.
+	 * This forces the callout to be resolved again.
+	 *
+	 * @param id The callout ID.
+	 */
+	public invalidate(id: CalloutID): void {
+		if (!this.cached) return;
+		const callout = this.cacheById.get(id);
+		if (callout !== undefined) {
+			this.invalidated.add(callout);
+		}
+	}
+
 	protected addCalloutSource(id: string, sourceKey: string) {
 		let callout = this.cacheById.get(id);
 		if (callout == null) {
@@ -177,7 +191,7 @@ export class CalloutCollection {
 	 * @param src The source that changed.
 	 * @param data A diff of changes.
 	 */
-	protected invalidate(
+	protected invalidateSource(
 		src: CalloutSource,
 		data: { added: CalloutID[]; removed: CalloutID[]; changed: CalloutID[] },
 	): void {
@@ -222,9 +236,9 @@ class CachedCallout {
  */
 class CalloutCollectionSnippets {
 	private data = new Map<SnippetID, Set<CalloutID>>();
-	private invalidate: CalloutCollection['invalidate'];
+	private invalidate: CalloutCollection['invalidateSource'];
 
-	public constructor(invalidate: CalloutCollection['invalidate']) {
+	public constructor(invalidate: CalloutCollection['invalidateSource']) {
 		this.invalidate = invalidate;
 	}
 
@@ -291,9 +305,9 @@ class CalloutCollectionSnippets {
  */
 class CalloutCollectionObsidian {
 	private data = new Set<CalloutID>();
-	private invalidate: CalloutCollection['invalidate'];
+	private invalidate: CalloutCollection['invalidateSource'];
 
-	public constructor(invalidate: CalloutCollection['invalidate']) {
+	public constructor(invalidate: CalloutCollection['invalidateSource']) {
 		this.invalidate = invalidate;
 	}
 
@@ -322,10 +336,10 @@ class CalloutCollectionObsidian {
  */
 class CalloutCollectionTheme {
 	private data = new Set<CalloutID>();
-	private invalidate: CalloutCollection['invalidate'];
+	private invalidate: CalloutCollection['invalidateSource'];
 	private oldTheme: string | null;
 
-	public constructor(invalidate: CalloutCollection['invalidate']) {
+	public constructor(invalidate: CalloutCollection['invalidateSource']) {
 		this.invalidate = invalidate;
 		this.oldTheme = '';
 	}
@@ -402,9 +416,9 @@ class CalloutCollectionTheme {
  */
 class CalloutCollectionCustom {
 	private data: CalloutID[] = [];
-	private invalidate: CalloutCollection['invalidate'];
+	private invalidate: CalloutCollection['invalidateSource'];
 
-	public constructor(invalidate: CalloutCollection['invalidate']) {
+	public constructor(invalidate: CalloutCollection['invalidateSource']) {
 		this.invalidate = invalidate;
 	}
 

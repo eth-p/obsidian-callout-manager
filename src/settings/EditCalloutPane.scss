@@ -1,32 +1,8 @@
-// Ensure the preview takes a certain height.
-.callout-manager-edit-callout-preview {
-	padding-bottom: var(--size-4-8);
-	min-height: 14em;
-
-	body.is-mobile & {
-		min-height: 35vh;
-	}
-}
-
-// The text box that allows the preview to be changed.
-.callout-manager-preview-editor {
-	resize: vertical;
-	width: 100%;
-	min-height: 6em;
-
-	margin-top: var(--size-4-3);
-
-	// Try to be as transparent as possible.
-	background: transparent;
-	font-size: var(--font-text-size);
-	font-family: var(--font-text);
-	line-height: var(--line-height-normal);
-}
-
 // Sections of the pane.
 .callout-manager-edit-callout-section {
 	border-top: 1px solid var(--background-modifier-border);
-	padding: var(--size-4-3) 0;
+	padding-top: var(--size-4-3);
+	padding-bottom: var(--size-4-6);
 }
 
 .callout-manager-edit-callout-section h2 {
@@ -40,6 +16,6 @@
 .callout-manager-edit-callout-delete-button {
 	color: var(--text-error);
 	&:hover {
-		color: var(--text-error)
+		color: var(--text-error);
 	}
 }

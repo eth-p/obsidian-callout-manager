@@ -216,13 +216,13 @@ class CMSettingPaneLayers {
 	}
 
 	protected doDisplay(renderControls: boolean): void {
-		const { activePane } = this;
+		const { activePane, titleEl, navEl, containerEl } = this;
 		if (activePane === undefined) {
 			return;
 		}
 
 		// Display the nav.
-		this.navEl.empty();
+		navEl.empty();
 		if (this.layers.length > 0) {
 			new ButtonComponent(this.navEl)
 				.setIcon('lucide-arrow-left-circle')
@@ -232,13 +232,13 @@ class CMSettingPaneLayers {
 		}
 
 		// Display the title.
-		this.titleEl.empty();
+		titleEl.empty();
 		const { title } = activePane;
 		if (typeof title === 'string') {
-			this.titleEl.createEl('h2', { text: title });
+			titleEl.createEl('h2', { text: title });
 		} else {
-			this.titleEl.createEl('h2', { text: title.title });
-			this.titleEl.createEl('h3', { text: title.subtitle });
+			titleEl.createEl('h2', { text: title.title });
+			titleEl.createEl('h3', { text: title.subtitle });
 		}
 
 		// Display the controls.
@@ -249,6 +249,7 @@ class CMSettingPaneLayers {
 		}
 
 		// Display the contents.
+		containerEl.empty();
 		activePane.display();
 	}
 
@@ -330,7 +331,7 @@ export abstract class CMSettingPane<S = unknown> {
 	 * @returns The saved state.
 	 */
 	protected suspendState(): S {
-		return undefined as S;
+		return undefined as unknown as S;
 	}
 
 	/**

@@ -13,9 +13,11 @@ import { CalloutManagerAPI_V1 } from './api-v1';
 import { CalloutCollection } from './callout-collection';
 import builtinCallouts from './callout-fallback-obsidian.json';
 import { CalloutResolver } from './callout-resolver';
+import { calloutSettingsToCSS, currentCalloutEnvironment } from './callout-settings';
+import { StylesheetApplier } from './css-applier';
 import { getCalloutsFromCSS } from './css-parser';
 import StylesheetWatcher, { ObsidianStylesheet, SnippetStylesheet, ThemeStylesheet } from './css-watcher';
-import Settings, { defaultSettings, mergeSettings } from './settings';
+import Settings, { CalloutSettings, defaultSettings, mergeSettings } from './settings';
 import { CMSettingTab } from './settings/CMSettingTab';
 import { ManageCalloutsPane } from './settings/ManageCalloutsPane';
 import { ManagePluginPane } from './settings/ManagePluginPane';
@@ -23,6 +25,7 @@ import { ManagePluginPane } from './settings/ManagePluginPane';
 export default class CalloutManagerPlugin extends Plugin {
 	public settings!: Settings;
 	public cssWatcher!: StylesheetWatcher;
+	public cssApplier!: StylesheetApplier;
 	public calloutResolver!: CalloutResolver;
 
 	public callouts!: CalloutCollection;
@@ -57,6 +60,17 @@ export default class CalloutManagerPlugin extends Plugin {
 		// Add the custom callouts.
 		this.callouts.custom.add(...settings.callouts.custom);
 
+		// Create the stylesheet applier.
+		this.cssApplier = new StylesheetApplier(this, 'callout-settings');
+		this.cssApplier.reapply();
+		this.register(this.cssApplier.start());
+		this.regenerateCalloutSettingStyles();
+		this.registerEvent(
+			this.app.workspace.on('css-change', () => {
+				this.regenerateCalloutSettingStyles();
+			}),
+		);
+
 		// Create the stylesheet watcher.
 		// This will let us update the callout collection whenever any styles change.
 		this.cssWatcher = new StylesheetWatcher(this.app, settings.calloutDetection.obsidianFallbackForced);
@@ -68,10 +82,6 @@ export default class CalloutManagerPlugin extends Plugin {
 			this.calloutResolver.reloadStyles();
 			this.register(this.cssWatcher.watch());
 		});
-
-		// DEBUG: Testing
-		(window as any).TEST = this;
-		this.register(() => ((window as any).TEST = null));
 
 		// Register setting tab.
 		this.settingTab = new CMSettingTab(this, () => new ManagePluginPane(this));
@@ -85,61 +95,6 @@ export default class CalloutManagerPlugin extends Plugin {
 				this.settingTab.openWithPane(new ManageCalloutsPane(this));
 			},
 		});
-
-		// // This creates an icon in the left ribbon.
-		// const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
-		// 	// Called when the user clicks the icon.
-		// 	new Notice('This is a notice!');
-		// });
-		// // Perform additional things with the ribbon
-		// ribbonIconEl.addClass('my-plugin-ribbon-class');
-
-		// // This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		// const statusBarItemEl = this.addStatusBarItem();
-		// statusBarItemEl.setText('Status Bar Text');
-
-		// // This adds a simple command that can be triggered anywhere
-
-		// // This adds an editor command that can perform some operation on the current editor instance
-		// this.addCommand({
-		// 	id: 'sample-editor-command',
-		// 	name: 'Sample editor command',
-		// 	editorCallback: (editor: Editor, view: MarkdownView | MarkdownFileInfo) => {
-		// 		console.log(editor.getSelection());
-		// 		editor.replaceSelection('Sample Editor Command');
-		// 	},
-		// });
-		// // This adds a complex command that can check whether the current state of the app allows execution of the command
-		// this.addCommand({
-		// 	id: 'open-sample-modal-complex',
-		// 	name: 'Open sample modal (complex)',
-		// 	checkCallback: (checking: boolean) => {
-		// 		// Conditions to check
-		// 		const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-		// 		if (markdownView) {
-		// 			// If checking is true, we're simply "checking" if the command can be run.
-		// 			// If checking is false, then we want to actually perform the operation.
-		// 			if (!checking) {
-		// 				new SampleModal(this.app).open();
-		// 			}
-
-		// 			// This command will only show up in Command Palette when the check function returns true
-		// 			return true;
-		// 		}
-		// 	},
-		// });
-
-		// // This adds a settings tab so the user can configure various aspects of the plugin
-		// this.addSettingTab(new SampleSettingTab(this.app, this));
-
-		// // If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// // Using this function will automatically remove the event listener when this plugin is disabled.
-		// this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-		// 	console.log('click', evt);
-		// });
-
-		// // When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		// this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
 	}
 
 	/** @override */
@@ -216,6 +171,64 @@ export default class CalloutManagerPlugin extends Plugin {
 		callouts.custom.delete(id);
 		settings.callouts.custom = callouts.custom.keys();
 		this.saveSettings();
+	}
+
+	/**
+	 * Gets the custom settings for a callout.
+	 *
+	 * @param id The callout ID.
+	 * @returns The custom settings, or undefined if there are none.
+	 */
+	public getCalloutSettings(id: CalloutID): CalloutSettings | undefined {
+		const calloutSettings = this.settings.callouts.settings;
+		if (!Object.prototype.hasOwnProperty.call(calloutSettings, id)) {
+			return undefined;
+		}
+
+		return calloutSettings[id];
+	}
+
+	/**
+	 * Sets the custom settings for a callout.
+	 *
+	 * @param id The callout ID.
+	 * @param settings The callout settings.
+	 */
+	public setCalloutSettings(id: CalloutID, settings: CalloutSettings | undefined) {
+		const calloutSettings = this.settings.callouts.settings;
+
+		// Update settings.
+		if (settings === undefined) {
+			delete calloutSettings[id];
+		} else {
+			calloutSettings[id] = settings;
+		}
+
+		// Save.
+		this.saveSettings();
+
+		// Reapply.
+		this.regenerateCalloutSettingStyles();
+		this.callouts.invalidate(id);
+	}
+
+	/**
+	 * Regenerates the CSS from the user's custom callout settings.
+	 * This will apply the custom CSS to the resolver and the document.
+	 */
+	public regenerateCalloutSettingStyles() {
+		const env = currentCalloutEnvironment(this.app);
+
+		// Generate the CSS.
+		const css = [];
+		for (const [id, settings] of Object.entries(this.settings.callouts.settings)) {
+			css.push(calloutSettingsToCSS(id, settings, env));
+		}
+
+		// Apply the CSS.
+		const stylesheet = css.join('\n\n');
+		this.cssApplier.textContent = stylesheet;
+		this.calloutResolver.reloadStyles();
 	}
 
 	/**

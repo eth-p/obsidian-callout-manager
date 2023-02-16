@@ -107,6 +107,10 @@ export class CalloutResolver {
 			color: styles.getPropertyValue('--callout-color').trim(),
 		}));
 	}
+
+	public get customStyleEl(): HTMLStyleElement {
+		return this.calloutPreview.customStyleEl as HTMLStyleElement;
+	}
 }
 
 /**

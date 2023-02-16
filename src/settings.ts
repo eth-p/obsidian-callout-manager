@@ -16,21 +16,40 @@ export default interface Settings {
 	};
 }
 
-type CalloutSettingsElementaryCondition = { theme: ThemeID | '<default>' } | { appearance: 'dark' | 'light' };
-export type CalloutSettingsCondition =
-	| undefined
-	| CalloutSettingsElementaryCondition
+// Callout settings type definitions.
+
+export type CalloutSettingsConditionType = 'theme' | 'appearance' | 'and' | 'or';
+
+export type CalloutSettingsThemeCondition = { theme: ThemeID | '<default>' };
+export type CalloutSettingsAppearanceCondition = { appearance: 'dark' | 'light' };
+export type CalloutSettingsElementaryConditions = CalloutSettingsThemeCondition | CalloutSettingsAppearanceCondition;
+export type CalloutSettingsCombinatoryConditions =
 	| { and: CalloutSettingsCondition[] }
 	| { or: CalloutSettingsCondition[] };
 
-export type CalloutSettings = Array<{
-	condition: CalloutSettingsCondition;
-	changes: {
-		color: string;
-		icon: string;
-		customStyles: string;
-	};
-}>;
+/**
+ * Changes that can be applied to callouts.
+ */
+export type CalloutSettingsChanges = {
+	color?: string;
+	icon?: string;
+	customStyles?: string;
+};
+
+/**
+ * Conditions that affect when callout changes are applied.
+ */
+export type CalloutSettingsCondition =
+	| undefined
+	| CalloutSettingsElementaryConditions
+	| CalloutSettingsCombinatoryConditions;
+
+export type CalloutSetting<C extends CalloutSettingsCondition = CalloutSettingsCondition> = {
+	condition: C;
+	changes: CalloutSettingsChanges;
+};
+
+export type CalloutSettings<C extends CalloutSettingsCondition = CalloutSettingsCondition> = Array<CalloutSetting<C>>;
 
 export function defaultSettings(): Settings {
 	return {

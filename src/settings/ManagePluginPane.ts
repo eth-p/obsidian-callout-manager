@@ -1,4 +1,4 @@
-import { Setting } from 'obsidian';
+import { ButtonComponent, Setting } from 'obsidian';
 
 import CalloutManagerPlugin from '../main';
 
@@ -89,5 +89,83 @@ export class ManagePluginPane extends CMSettingPane {
 					plugin.refreshCalloutSources();
 				});
 			});
+
+		// -----------------------------------------------------------------------------------------------------
+		// Section: Reset
+		// -----------------------------------------------------------------------------------------------------
+		containerEl.createEl('h2', { text: 'Reset' });
+
+		new Setting(containerEl)
+			.setName('Reset Callout Settings')
+			.setDesc('Reset all the changes you made to callouts.')
+			.addButton(
+				withConfirm((btn) => {
+					btn.setButtonText('Reset').onClick(() => {
+						this.plugin.settings.callouts.settings = {};
+						this.plugin.saveSettings();
+
+						// Regenerate the callout styles.
+						this.plugin.regenerateCalloutSettingStyles();
+						btn.setButtonText('Reset').setDisabled(true);
+					});
+				}),
+			);
+
+		new Setting(containerEl)
+			.setName('Reset Custom Callouts')
+			.setDesc('Removes all the custom callouts you created.')
+			.addButton(
+				withConfirm((btn) => {
+					btn.setButtonText('Reset').onClick(() => {
+						// Remove the stylings for the custom callouts.
+						const { settings } = this.plugin;
+						for (const custom of settings.callouts.custom) {
+							delete settings.callouts.settings[custom];
+						}
+
+						// Remove the custom callouts.
+						settings.callouts.custom = [];
+						this.plugin.saveSettings();
+
+						// Regenerate the callout styles.
+						this.plugin.callouts.custom.clear();
+						this.plugin.regenerateCalloutSettingStyles();
+
+						// Regenerate the cache.
+						this.plugin.refreshCalloutSources();
+						btn.setButtonText('Reset').setDisabled(true);
+					});
+				}),
+			);
 	}
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function withConfirm(callback: (btn: ButtonComponent) => any): (btn: ButtonComponent) => any {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	let onClickHandler: undefined | ((...args: any[]) => any) = undefined;
+	let resetButtonClicked = false;
+
+	return (btn) => {
+		btn.setWarning().onClick(() => {
+			if (!resetButtonClicked) {
+				resetButtonClicked = true;
+				btn.setButtonText('Confirm');
+				return;
+			}
+
+			if (onClickHandler != undefined) {
+				onClickHandler();
+			}
+		});
+
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		btn.onClick = (handler: (...args: any[]) => any) => {
+			onClickHandler = handler;
+			return btn;
+		};
+
+		// Call the callback.
+		callback(btn);
+	};
 }
