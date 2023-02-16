@@ -7,7 +7,7 @@ import {
 	Plugin, // Setting,
 } from 'obsidian';
 
-import type { CalloutManager } from '../api';
+import type { CalloutID, CalloutManager } from '../api';
 
 import { CalloutManagerAPI_V1 } from './api-v1';
 import { CalloutCollection } from './callout-collection';
@@ -53,6 +53,9 @@ export default class CalloutManagerPlugin extends Plugin {
 				color,
 			};
 		});
+
+		// Add the custom callouts.
+		this.callouts.custom.add(...settings.callouts.custom);
 
 		// Create the stylesheet watcher.
 		// This will let us update the callout collection whenever any styles change.
@@ -191,6 +194,28 @@ export default class CalloutManagerPlugin extends Plugin {
 		this.cssWatcher.checkForChanges(true).then(() => {
 			this.maybeRefreshCalloutBuiltinsWithFallback();
 		});
+	}
+
+	/**
+	 * Create a custom callout and add it to Obsidian.
+	 * @param id The custom callout ID.
+	 */
+	public createCustomCallout(id: CalloutID): void {
+		const { callouts, settings } = this;
+		callouts.custom.add(id);
+		settings.callouts.custom = callouts.custom.keys();
+		this.saveSettings();
+	}
+
+	/**
+	 * Delete a custom callout.
+	 * @param id The custom callout ID.
+	 */
+	public removeCustomCallout(id: CalloutID): void {
+		const { callouts, settings } = this;
+		callouts.custom.delete(id);
+		settings.callouts.custom = callouts.custom.keys();
+		this.saveSettings();
 	}
 
 	/**

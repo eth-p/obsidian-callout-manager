@@ -1,7 +1,7 @@
 import { rgb } from 'color-convert';
 import { HSV, RGB } from 'color-convert/conversions';
 
-import { SearchResult, TextComponent, getIcon, prepareFuzzySearch } from 'obsidian';
+import { ButtonComponent, SearchResult, TextComponent, getIcon, prepareFuzzySearch } from 'obsidian';
 
 import { Callout } from '../../api';
 import { CalloutPreview, createCalloutPreview } from '../callout-preview';
@@ -9,6 +9,7 @@ import { getColorFromCallout } from '../callout-resolver';
 import CalloutManagerPlugin from '../main';
 
 import { CMSettingPane } from './CMSettingTab';
+import { CreateCalloutPane } from './CreateCalloutPane';
 import { EditCalloutPane } from './EditCalloutPane';
 
 export class ManageCalloutsPane extends CMSettingPane {
@@ -174,7 +175,10 @@ export class ManageCalloutsPane extends CMSettingPane {
 	 * This regenerates the previews and their metadata from the list of callouts known to the plugin.
 	 */
 	protected refreshPreviews(): void {
-		const editButtonContent = getIcon('lucide-edit') ?? document.createTextNode('Edit Callout');
+		const editButtonContent =
+			(this.viewOnly ? getIcon('lucide-view') : getIcon('lucide-edit')) ??
+			document.createTextNode('Edit Callout');
+
 		const editButtonHandler = (evt: MouseEvent) => {
 			let id = null;
 			for (let target = evt.targetNode; target != null && id == null; target = target?.parentElement) {
@@ -212,13 +216,11 @@ export class ManageCalloutsPane extends CMSettingPane {
 			);
 
 			// Add the edit button to the container.
-			if (!this.viewOnly) {
-				calloutContainerEl.classList.add('callout-manager-preview-container-with-button');
+			calloutContainerEl.classList.add('callout-manager-preview-container-with-button');
 
-				const editButton = calloutContainerEl.createEl('button');
-				editButton.appendChild(editButtonContent.cloneNode(true));
-				editButton.addEventListener('click', editButtonHandler);
-			}
+			const editButton = calloutContainerEl.createEl('button');
+			editButton.appendChild(editButtonContent.cloneNode(true));
+			editButton.addEventListener('click', editButtonHandler);
 		}
 	}
 
@@ -247,6 +249,14 @@ export class ManageCalloutsPane extends CMSettingPane {
 			.setValue(this.searchQuery)
 			.setPlaceholder('Filter callouts...')
 			.onChange(this.search.bind(this));
+
+		if (!this.viewOnly) {
+			new ButtonComponent(controlsEl)
+				.setIcon('lucide-plus')
+				.setTooltip('Create new Callout')
+				.onClick(() => this.nav.open(new CreateCalloutPane(this.plugin)))
+				.then(({ buttonEl }) => buttonEl.classList.add('clickable-icon'));
+		}
 	}
 
 	/** @override */

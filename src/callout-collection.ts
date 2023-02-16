@@ -9,22 +9,26 @@ export class CalloutCollection {
 	private resolver: (id: string) => Omit<Callout, 'sources'>;
 
 	private invalidated: Set<CachedCallout>;
+	private invalidationCount: number;
 	private cacheById: Map<CalloutID, CachedCallout>;
 	private cached: boolean;
 
 	public readonly snippets: CalloutCollectionSnippets;
 	public readonly builtin: CalloutCollectionObsidian;
 	public readonly theme: CalloutCollectionTheme;
+	public readonly custom: CalloutCollectionCustom;
 
 	public constructor(resolver: (id: string) => Omit<Callout, 'sources'>) {
 		this.resolver = resolver;
 		this.invalidated = new Set();
+		this.invalidationCount = 0;
 		this.cacheById = new Map();
 		this.cached = false;
 
 		this.snippets = new CalloutCollectionSnippets(this.invalidate.bind(this));
 		this.builtin = new CalloutCollectionObsidian(this.invalidate.bind(this));
 		this.theme = new CalloutCollectionTheme(this.invalidate.bind(this));
+		this.custom = new CalloutCollectionCustom(this.invalidate.bind(this));
 	}
 
 	public get(id: CalloutID): Callout | undefined {
@@ -60,6 +64,15 @@ export class CalloutCollection {
 		if (!this.cached) this.buildCache();
 		this.resolveAll();
 		return Array.from(this.cacheById.values()).map((c) => c.callout as Callout);
+	}
+
+	/**
+	 * Returns a function that will return `true` if the collection has changed since the function was created.
+	 * @returns The function.
+	 */
+	public hasChanged(): () => boolean {
+		const countSnapshot = this.invalidationCount;
+		return () => this.invalidationCount !== countSnapshot;
 	}
 
 	/**
@@ -117,6 +130,14 @@ export class CalloutCollection {
 		for (const snippet of this.snippets.keys()) {
 			const source = sourceToKey({ type: 'snippet', snippet });
 			for (const callout of this.snippets.get(snippet) as CalloutID[]) {
+				this.addCalloutSource(callout, source);
+			}
+		}
+
+		// Add custom callouts:
+		{
+			const source = sourceToKey({ type: 'custom' });
+			for (const callout of this.custom.keys()) {
 				this.addCalloutSource(callout, source);
 			}
 		}
@@ -179,6 +200,8 @@ export class CalloutCollection {
 				this.invalidated.add(callout);
 			}
 		}
+
+		this.invalidationCount++;
 	}
 }
 
@@ -371,6 +394,70 @@ class CalloutCollectionTheme {
 
 	public get(): CalloutID[] {
 		return Array.from(this.data.values());
+	}
+}
+
+/**
+ * A container for callout IDs that were created by the Callout Manager plugin.
+ */
+class CalloutCollectionCustom {
+	private data: CalloutID[] = [];
+	private invalidate: CalloutCollection['invalidate'];
+
+	public constructor(invalidate: CalloutCollection['invalidate']) {
+		this.invalidate = invalidate;
+	}
+
+	public has(id: CalloutID): boolean {
+		return undefined !== this.data.find((existingId) => existingId === id);
+	}
+
+	public add(...ids: CalloutID[]): void {
+		const set = new Set(this.data);
+		const added = [];
+
+		// Add the new callouts.
+		for (const id of ids) {
+			if (!set.has(id)) {
+				added.push(id);
+				set.add(id);
+				this.data.push(id);
+			}
+		}
+
+		// Invalidate.
+		if (added.length > 0) {
+			this.invalidate({ type: 'custom' }, { added, removed: [], changed: [] });
+		}
+	}
+
+	public delete(...ids: CalloutID[]): void {
+		const { data } = this;
+		const removed = [];
+
+		// Add the new callouts.
+		for (const id of ids) {
+			const index = data.findIndex((existingId) => id === existingId);
+			if (index !== undefined) {
+				data.splice(index, 1);
+				removed.push(id);
+			}
+		}
+
+		// Invalidate.
+		if (removed.length > 0) {
+			this.invalidate({ type: 'custom' }, { added: [], removed, changed: [] });
+		}
+	}
+
+	public keys(): CalloutID[] {
+		return this.data.slice(0);
+	}
+
+	public clear(): void {
+		const removed = this.data;
+		this.data = [];
+		this.invalidate({ type: 'custom' }, { added: [], removed, changed: [] });
 	}
 }
 

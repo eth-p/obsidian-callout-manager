@@ -36,16 +36,10 @@
 	}
 }
 
-.callout-manager-edit-callout-mod-invalid-color {
+// Delete icon.
+.callout-manager-edit-callout-delete-button {
 	color: var(--text-error);
-}
-
-.callout-manager-edit-callout-mod-color {
-	color: rgb(var(--resolved-callout-color));
-}
-
-.callout-manager-edit-callout-mod-callout-id {
-}
-
-.callout-manager-edit-callout-mod-callout-icon {
+	&:hover {
+		color: var(--text-error)
+	}
 }

@@ -153,3 +153,20 @@
 	align-items: center;
 	justify-content: center;
 }
+
+// Improve form UX.
+.callout-manager-setting-tab {
+	// Make disabled buttons look disabled.
+	button[disabled] {
+		box-shadow: none;
+		&:hover {
+			background-color: var(--interactive-normal);
+			cursor: not-allowed;
+		}
+	}
+
+	// Make invalid text boxes look invalid.
+	input:invalid:not(:placeholder-shown) {
+		border-color: var(--text-error);
+	}
+}

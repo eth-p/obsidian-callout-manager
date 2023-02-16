@@ -1,10 +1,7 @@
-import { rgb } from 'color-convert';
+import { ButtonComponent, Component, MarkdownRenderer, TextAreaComponent, getIcon } from 'obsidian';
 
-import { Component, MarkdownRenderer, TextAreaComponent, getIcon } from 'obsidian';
-
-import { Callout, CalloutSource } from '../../api';
+import { Callout } from '../../api';
 import { IsolatedCalloutPreview, createIsolatedCalloutPreview } from '../callout-preview';
-import { getColorFromCallout } from '../callout-resolver';
 import { calloutSettingsToCSS, currentCalloutEnvironment } from '../callout-settings';
 import CalloutManagerPlugin from '../main';
 import { CalloutSettings } from '../settings';
@@ -98,6 +95,25 @@ export class EditCalloutPane extends CMSettingPane {
 		renderInfo(this.plugin.app, this.callout, containerEl);
 	}
 
+	/** @override */
+	public displayControls(): void {
+		const { callout, controlsEl } = this;
+
+		// Delete button.
+		if (!this.viewOnly && callout.sources.length === 1 && callout.sources[0].type === 'custom') {
+			new ButtonComponent(controlsEl)
+				.setIcon('lucide-trash')
+				.setTooltip('Delete Callout')
+				.onClick(() => {
+					this.plugin.removeCustomCallout(callout.id);
+					this.nav.close();
+				})
+				.then(({ buttonEl }) =>
+					buttonEl.classList.add('clickable-icon', 'callout-manager-edit-callout-delete-button'),
+				);
+		}
+	}
+
 	public async changeSettings(settings: CalloutSettings): Promise<void> {
 		const styles = calloutSettingsToCSS(this.callout.id, settings, currentCalloutEnvironment(this.plugin.app));
 		this.calloutPreview.customStyleEl.textContent = styles;
@@ -144,9 +160,4 @@ export class EditCalloutPane extends CMSettingPane {
 
 	protected renderInfoDetails(): void {}
 	protected renderSettings(): void {}
-
-	/** @override */
-	public displayControls(): void {
-		const { controlsEl } = this;
-	}
 }

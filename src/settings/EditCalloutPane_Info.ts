@@ -83,7 +83,7 @@ function appendSourceInfo(app: App, el: HTMLElement, source: CalloutSource): boo
 			el.appendText('built-in callouts');
 			return true;
 		case 'custom':
-			el.appendText('callouts you created');
+			el.appendText('custom callouts you created');
 			return true;
 		case 'snippet':
 			el.appendText('CSS snippet ');
