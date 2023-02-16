@@ -1,6 +1,8 @@
-import { CalloutID } from '../api';
+import { RGB } from 'color-convert/conversions';
 
-import { createIsolatedCalloutPreview } from './callout-preview';
+import { Callout, CalloutID } from '../api';
+
+import { IsolatedCalloutPreview, createIsolatedCalloutPreview } from './callout-preview';
 
 /**
  * A class that fetches style information for callouts.
@@ -8,7 +10,7 @@ import { createIsolatedCalloutPreview } from './callout-preview';
  */
 export class CalloutResolver {
 	private hostElement: HTMLElement;
-	private calloutElement: HTMLElement;
+	private calloutPreview: IsolatedCalloutPreview<false>;
 
 	public constructor() {
 		this.hostElement = document.body.createDiv({
@@ -16,7 +18,7 @@ export class CalloutResolver {
 		});
 
 		this.hostElement.style.setProperty('display', 'none', 'important');
-		this.calloutElement = createIsolatedCalloutPreview(this.hostElement.createDiv(), '').calloutEl;
+		this.calloutPreview = createIsolatedCalloutPreview(this.hostElement.createDiv(), '');
 	}
 
 	/**
@@ -27,6 +29,8 @@ export class CalloutResolver {
 	 * @param styles The new style elements to use.
 	 */
 	public reloadStyles(styles?: HTMLStyleElement[]) {
+		const { providedStyleEls, customStyleEl } = this.calloutPreview;
+
 		// If no style elements were provided, fetch them form the document head.
 		if (styles === undefined) {
 			styles = [];
@@ -37,37 +41,27 @@ export class CalloutResolver {
 			}
 		}
 
-		// Get the top of the shadow DOM.
-		let shadowBody = this.calloutElement.parentElement as HTMLElement;
-		while (shadowBody?.parentElement != null) {
-			shadowBody = shadowBody.parentElement;
+		// Replace the styles.
+		let i, end;
+		let lastNode = customStyleEl.previousSibling as HTMLElement;
+		for (i = 0, end = Math.min(styles.length, providedStyleEls.length); i < end; i++) {
+			const clone = styles[i].cloneNode(true) as HTMLStyleElement;
+			providedStyleEls[i].replaceWith(clone);
+			providedStyleEls[i] = clone;
+			lastNode = clone;
 		}
 
-		// Remove all style elements in the callout's shadow DOM.
-		// The first non-style element is where we should start inserting new styles.
-		let prevSibling = shadowBody.previousElementSibling;
-		let firstNonStyleSibling = null;
-		while (prevSibling != null) {
-			if (prevSibling.tagName === 'STYLE') {
-				const styleSibling = prevSibling;
-				prevSibling = prevSibling.previousElementSibling;
-				styleSibling.detach();
-				continue;
-			}
-
-			if (firstNonStyleSibling == null) {
-				firstNonStyleSibling = prevSibling;
-			}
-
-			prevSibling = prevSibling.previousElementSibling;
+		// Add styles that didn't have anywhere to go.
+		for (end = styles.length; i < end; i++) {
+			const clone = styles[i].cloneNode(true) as HTMLStyleElement;
+			lastNode.insertAdjacentElement('afterend', clone);
+			providedStyleEls.push(clone);
 		}
 
-		// Add new style elements.
-		prevSibling = firstNonStyleSibling;
-		for (const style of styles) {
-			const styleClone = style.cloneNode(true) as HTMLStyleElement;
-			prevSibling?.insertAdjacentElement('afterend', styleClone);
-			prevSibling = styleClone;
+		// Remove extra styles.
+		const toRemove = providedStyleEls.splice(i, providedStyleEls.length);
+		for (const node of toRemove) {
+			node.remove();
 		}
 	}
 
@@ -76,7 +70,7 @@ export class CalloutResolver {
 	 * This should be called when the plugin is unloading.
 	 */
 	public unload() {
-		this.hostElement.detach();
+		this.hostElement.remove();
 	}
 
 	/**
@@ -88,13 +82,14 @@ export class CalloutResolver {
 	 * @returns Whatever the callback function returned.
 	 */
 	public getCalloutStyles<T>(id: CalloutID, callback: (styles: CSSStyleDeclaration) => T): T {
-		this.calloutElement.setAttribute('data-callout', id);
+		const { calloutEl } = this.calloutPreview;
+		calloutEl.setAttribute('data-callout', id);
 
 		// Run the callback.
 		//   We need to use the callback to create the full set of desired return properties because
 		//   window.getComputedStyle returns an object that will update itself automatically. The moment we
 		//   change the host element, all the styles we want from it will be removed.
-		const result = callback(window.getComputedStyle(this.calloutElement));
+		const result = callback(window.getComputedStyle(calloutEl));
 
 		return result;
 	}
@@ -112,4 +107,21 @@ export class CalloutResolver {
 			color: styles.getPropertyValue('--callout-color').trim(),
 		}));
 	}
+}
+
+/**
+ * Gets the color (as a {@link RGB}) from a {@link Callout}.
+ * This will try to do basic parsing on the color field.
+ *
+ * @param callout The callout.
+ * @returns The callout's color, or null if not valid.
+ */
+export function getColorFromCallout(callout: Callout): RGB | null {
+	const components = callout.color.split(',').map((s) => parseInt(s.trim(), 10)) as RGB;
+	const valid = components.length === 3 && components.find((v) => v < 0 || v > 255) === undefined;
+	if (!valid) {
+		return null;
+	}
+
+	return components;
 }

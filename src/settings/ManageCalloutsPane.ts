@@ -1,21 +1,23 @@
 import { rgb } from 'color-convert';
 import { HSV, RGB } from 'color-convert/conversions';
 
-import { SearchResult, TextComponent, prepareFuzzySearch } from 'obsidian';
+import { SearchResult, TextComponent, getIcon, prepareFuzzySearch } from 'obsidian';
 
 import { Callout, CalloutProperties } from '../../api';
 import { CalloutPreview, createCalloutPreview } from '../callout-preview';
+import { getColorFromCallout } from '../callout-resolver';
 import CalloutManagerPlugin from '../main';
 
 import { CMSettingPane } from './CMSettingTab';
+import { EditCalloutPane } from './EditCalloutPane';
 
 export class ManageCalloutsPane extends CMSettingPane {
 	public readonly title = { title: 'Callouts', subtitle: 'Manage' };
+	private readonly viewOnly: boolean;
 	private plugin: CalloutManagerPlugin;
 
 	private searchQuery: string;
-	private searchQueryProperty: keyof CalloutProperties;
-	private searchFilter: null | ((text: string) => SearchResult | null);
+	private searchFilter: null | ((callout: CalloutPreviewWithMetadata) => SearchResult | null);
 	private previewCache: CalloutPreviewWithMetadata[];
 
 	private searchErrorDiv: HTMLElement;
@@ -26,9 +28,9 @@ export class ManageCalloutsPane extends CMSettingPane {
 		this.plugin = plugin;
 
 		this.searchQuery = '';
-		this.searchQueryProperty = 'id';
 		this.searchFilter = null;
 		this.previewCache = [];
+		this.viewOnly = false;
 
 		const { searchErrorDiv, searchErrorQuery } = createEmptySearchResultDiv();
 		this.searchErrorDiv = searchErrorDiv;
@@ -40,10 +42,98 @@ export class ManageCalloutsPane extends CMSettingPane {
 	 * @param query The search query.
 	 */
 	public search(query: string): void {
+		const split = query.split(':', 2);
+		let prefix = 'id',
+			search = query;
+		if (split.length === 2) {
+			prefix = split[0];
+			search = split[1].trim();
+		}
+
+		// Set the search parameters.
+		this.searchFilter = this.prepareSearch(search, prefix);
 		this.searchQuery = query;
-		this.searchFilter = query === '' ? null : prepareFuzzySearch(query);
-		this.searchErrorQuery.textContent = query;
+		this.searchErrorQuery.textContent = search;
+
+		// Refresh the display.
 		this.display();
+	}
+
+	/**
+	 * Prepares the search filter function.
+	 *
+	 * @param query The query.
+	 * @param queryPrefix The query prefix (type of query).
+	 *
+	 * @returns The search filter function.
+	 */
+	protected prepareSearch(query: string, queryPrefix: string): ManageCalloutsPane['searchFilter'] {
+		// Search `id:` -- Search by ID.
+		if (queryPrefix === 'id') {
+			const fuzzy = prepareFuzzySearch(query.toLowerCase());
+			return (callout) => fuzzy(callout.properties.id);
+		}
+
+		// Search `icon:` -- Search by icon.
+		if (queryPrefix === 'icon') {
+			const fuzzy = prepareFuzzySearch(query.toLowerCase());
+			return (callout) => fuzzy(callout.properties.icon.toLowerCase());
+		}
+
+		// Search `from:` -- Search by source.
+		if (queryPrefix === 'from') {
+			const queryLC = query.toLowerCase();
+			const queryIsBuiltin = queryLC === 'obsidian' || queryLC === 'builtin' || queryLC === 'built-in';
+			const fuzzy = prepareFuzzySearch(queryLC);
+
+			const hasSnippetWithQueryAsId =
+				this.plugin.callouts.snippets.keys().find((id) => id.toLowerCase() === queryLC) !== undefined;
+
+			return (callout) => {
+				let result = null;
+				if (query === '') return { matches: [], score: 0 };
+
+				for (const source of callout.sources) {
+					// Special case: an exact match on the snippet ID.
+					if (hasSnippetWithQueryAsId) {
+						if (source.type === 'snippet' && source.snippet.toLowerCase() === queryLC)
+							return { matches: [], score: -1 };
+						continue;
+					}
+
+					// General cases:
+					switch (source.type) {
+						case 'builtin':
+							if (queryIsBuiltin) return { matches: [], score: -1 };
+							break;
+
+						case 'custom':
+							if (queryLC === 'custom') return { matches: [], score: -1 };
+							break;
+
+						case 'theme':
+							if (queryLC === 'theme') return { matches: [], score: -1 };
+							break;
+
+						case 'snippet': {
+							const snippetLC = source.snippet.toLowerCase();
+							if (snippetLC === queryLC) return { matches: [], score: -1 };
+
+							// Try matching fuzzily on the snippet name.
+							const fuzzily = fuzzy(snippetLC);
+							if (fuzzily != null && (result == null || fuzzily.score < result.score)) {
+								result = fuzzily;
+							}
+						}
+					}
+				}
+
+				return result;
+			};
+		}
+
+		// Unknown prefix.
+		return () => null;
 	}
 
 	/**
@@ -62,7 +152,7 @@ export class ManageCalloutsPane extends CMSettingPane {
 		// Filter out the previews that don't match the search query.
 		const filterMapped: Array<[CalloutPreviewWithMetadata, SearchResult]> = [];
 		for (const preview of previews) {
-			const result = searchFilter(preview.properties[this.searchQueryProperty]);
+			const result = searchFilter(preview);
 			if (result != null) {
 				filterMapped.push([preview, result]);
 			}
@@ -84,15 +174,33 @@ export class ManageCalloutsPane extends CMSettingPane {
 	 * This regenerates the previews and their metadata from the list of callouts known to the plugin.
 	 */
 	protected refreshPreviews(): void {
+		const editButtonContent = getIcon('lucide-edit') ?? document.createTextNode('Edit Callout');
+		const editButtonHandler = (evt: MouseEvent) => {
+			let id = null;
+			for (let target = evt.targetNode; target != null && id == null; target = target?.parentElement) {
+				if (target instanceof Element) {
+					id = target.getAttribute('data-callout-manager-callout');
+				}
+			}
+
+			if (id != null) {
+				this.nav.open(new EditCalloutPane(this.plugin, id, this.viewOnly));
+			}
+		};
+
+		// Generate the cache of preview items.
 		this.previewCache = [];
 		for (const callout of this.plugin.callouts.values()) {
 			const calloutContainerEl = document.createElement('div');
 			calloutContainerEl.classList.add('callout-manager-preview-container');
+			calloutContainerEl.setAttribute('data-callout-manager-callout', callout.id);
 
+			// Add the preview.
 			this.previewCache.push(
 				attachMetadata(
 					callout,
-					createCalloutPreview(calloutContainerEl, callout.id, {
+					calloutContainerEl,
+					createCalloutPreview(calloutContainerEl.createDiv(), callout.id, {
 						title: callout.id,
 
 						// Since we can't detect icons or colors without an attachment to the DOM, we need to
@@ -102,6 +210,15 @@ export class ManageCalloutsPane extends CMSettingPane {
 					}),
 				),
 			);
+
+			// Add the edit button to the container.
+			if (!this.viewOnly) {
+				calloutContainerEl.classList.add('callout-manager-preview-container-with-button');
+
+				const editButton = calloutContainerEl.createEl('button');
+				editButton.appendChild(editButtonContent.cloneNode(true));
+				editButton.addEventListener('click', editButtonHandler);
+			}
 		}
 	}
 
@@ -113,7 +230,7 @@ export class ManageCalloutsPane extends CMSettingPane {
 		// Clear the container and re-render.
 		containerEl.empty();
 		for (const preview of previews) {
-			containerEl.appendChild(preview.calloutEl);
+			containerEl.appendChild(preview.calloutContainerEl);
 		}
 
 		// If no previews, print help.
@@ -146,31 +263,46 @@ export class ManageCalloutsPane extends CMSettingPane {
 /**
  * A {@link CalloutPreview} with attached metadata to make it easier to filter and search.
  */
-interface CalloutPreviewWithMetadata extends CalloutPreview {
+interface CalloutPreviewWithMetadata extends CalloutPreview<true> {
+	sources: Callout['sources'];
+	calloutContainerEl: HTMLElement;
 	colorValid: boolean;
 	rgb: RGB;
 	hsv: HSV;
 }
 
+function attachMetadata(
+	callout: Callout,
+	calloutContainerEl: HTMLElement,
+	preview: CalloutPreview<false>,
+): CalloutPreviewWithMetadata {
+	const color = getColorFromCallout(callout);
+	return {
+		...preview,
+		sources: callout.sources,
+		calloutContainerEl,
+		properties: callout, // <-- The preview doesn't originally have properties as it wasn't created within the DOM.
+		colorValid: color != null,
+		rgb: color ?? [0, 0, 0],
+		hsv: color == null ? [0, 0, 0] : rgb.hsv(color),
+	};
+}
+
+/**
+ * Compares two callout previews by their hue.
+ *
+ * @param a The first preview.
+ * @param b The second preview.
+ * @returns `-1` if the a has a lower hue, `0` if they are the same, or `1` if a has a higher hue.
+ */
 function comparePreviewByColor(a: CalloutPreviewWithMetadata, b: CalloutPreviewWithMetadata): number {
 	if (a.colorValid && !b.colorValid) return -1;
 	if (b.colorValid && !a.colorValid) return 1;
 	return a.hsv[0] - b.hsv[0];
 }
 
-function attachMetadata(callout: Callout, preview: CalloutPreview): CalloutPreviewWithMetadata {
-	const colorRGB = callout.color.split(',').map((s) => parseInt(s.trim(), 10)) as RGB;
-	const colorValid = colorRGB.length === 3 && colorRGB.find((v) => v < 0 || v > 255) === undefined;
-	return {
-		...preview,
-		colorValid,
-		rgb: colorValid ? colorRGB : [0, 0, 0],
-		hsv: colorValid ? rgb.hsv(colorRGB) : [0, 0, 0],
-	};
-}
-
 /**
- * Creates a div that can be used to show the user why their search query failed.
+ * Creates a div that can be used to show the user why the search query failed.
  */
 function createEmptySearchResultDiv(): { searchErrorDiv: HTMLElement; searchErrorQuery: HTMLElement } {
 	let searchErrorQuery!: HTMLElement;
@@ -194,6 +326,9 @@ function createEmptySearchResultDiv(): { searchErrorDiv: HTMLElement; searchErro
 		el.createEl('ul', undefined, (el) => {
 			el.createEl('li', { text: 'By name (example: "warning")' });
 			el.createEl('li', { text: 'By icon (example: "icon:check")' });
+			el.createEl('li', { text: 'Built-in callouts (example: "from:obsidian")' });
+			el.createEl('li', { text: 'Theme callouts (example: "from:theme")' });
+			el.createEl('li', { text: 'Snippet callouts (example: "from:my snippet")' });
 		});
 	});
 

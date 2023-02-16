@@ -2,6 +2,7 @@
 // The rendering of the callouts will be broken unless this is reset.
 .callout.callout-manager-preview {
 	mix-blend-mode: unset !important;
+	margin: 0 !important;
 }
 
 .callout-manager-preview-container {

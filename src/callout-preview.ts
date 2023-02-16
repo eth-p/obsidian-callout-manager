@@ -2,9 +2,15 @@ import { getIcon } from 'obsidian';
 
 import { CalloutID, CalloutProperties } from '../api';
 
-export type CalloutPreview = {
+export type CalloutPreview<AttachedToDom extends boolean = true> = {
 	calloutEl: HTMLElement;
-	properties: CalloutProperties;
+	iconEl: HTMLElement;
+	properties: AttachedToDom extends true ? CalloutProperties : Pick<CalloutProperties, 'id'>;
+};
+
+export type IsolatedCalloutPreview<AttachedToDom extends boolean = true> = CalloutPreview<AttachedToDom> & {
+	customStyleEl: HTMLElement;
+	providedStyleEls: HTMLStyleElement[];
 };
 
 interface CalloutPreviewOptions {
@@ -13,6 +19,8 @@ interface CalloutPreviewOptions {
 
 	overrideColor?: string;
 	overrideIcon?: string;
+
+	callback?: (opts: { calloutEl: HTMLElement; contentEl: HTMLElement | undefined; titleEl: HTMLElement }) => void;
 }
 
 /**
@@ -26,11 +34,11 @@ interface CalloutPreviewOptions {
  *
  * @returns The callout preview.
  */
-export function createCalloutPreview(
+export function createCalloutPreview<AttachedToDom extends boolean = true>(
 	targetEl: HTMLElement,
 	id: CalloutID,
 	options?: CalloutPreviewOptions,
-): CalloutPreview {
+): CalloutPreview<AttachedToDom> {
 	const title = options?.title ?? `Preview: ${id}`;
 
 	// Clear the target element and set its CSS classes.
@@ -52,38 +60,46 @@ export function createCalloutPreview(
 
 	// Fetch the custom properties from the callout.
 	const calloutElStyle = window.getComputedStyle(calloutEl);
-	const icon = calloutElStyle.getPropertyValue('--callout-icon').trim();
-	const color = calloutElStyle.getPropertyValue('--callout-color').trim();
+	const icon = options?.overrideIcon ?? calloutElStyle.getPropertyValue('--callout-icon').trim();
+	const color = options?.overrideColor ?? calloutElStyle.getPropertyValue('--callout-color').trim();
 
 	// Get the icon SVG contents.
 	const iconSvg = getIcon(options?.overrideIcon ?? icon) ?? getIcon('lucide-pencil');
 
 	// Build the callout title.
 	const titleEl = calloutEl.createDiv({ cls: 'callout-title' });
-	const titleIconEl = titleEl.createDiv({ cls: 'callout-icon' });
+	const iconEl = titleEl.createDiv({ cls: 'callout-icon' });
 	titleEl.createDiv({ cls: 'callout-title-inner', text: title });
 	if (iconSvg != null) {
-		titleIconEl.appendChild(iconSvg);
+		iconEl.appendChild(iconSvg);
 	}
 
 	// Build the callout contents.
+	let contentEl: HTMLDivElement | undefined;
 	if (options?.contents != null) {
-		const contentEl = calloutEl.createDiv({ cls: 'callout-content' });
+		contentEl = calloutEl.createDiv({ cls: 'callout-content' });
 		if (typeof options.contents === 'function') {
-			options.contents(contentEl);
+			options.contents(contentEl as HTMLDivElement);
 		} else {
 			contentEl.createEl('p', { text: options?.contents ?? 'Lorem ipsum...' });
 		}
 	}
 
+	// Call the callback.
+	const callback = options?.callback;
+	if (callback != null) {
+		callback({ calloutEl, contentEl, titleEl });
+	}
+
 	// Return the callout element and its properties.
 	return {
 		calloutEl,
+		iconEl,
 		properties: {
 			id,
 			color,
 			icon,
-		},
+		} as CalloutProperties,
 	};
 }
 
@@ -108,12 +124,8 @@ export function createIsolatedCalloutPreview(
 
 		theme?: 'dark' | 'light';
 	},
-): CalloutPreview {
-	if (!window.document.contains(targetEl)) {
-		throw new Error('Callout previews can only be created on a container that is attached to DOM.');
-	}
-
-	const dom = targetEl.attachShadow({ delegatesFocus: false, mode: 'closed' });
+): IsolatedCalloutPreview<false> {
+	const frag = document.createDocumentFragment();
 	const focused = options?.focused ?? false;
 	const theme = options?.theme ?? window.document.body.hasClass('theme-dark') ? 'dark' : 'light';
 	const readingView = (options?.viewType ?? 'reading') === 'reading';
@@ -121,6 +133,7 @@ export function createIsolatedCalloutPreview(
 	// Copy the stylesheets into the Shadow DOM.
 	//   If options.styleElements is provided, use those.
 	//   Otherwise, use everything we can find in the <head> element.
+	const providedStyleEls: HTMLStyleElement[] = [];
 	const styleElements =
 		options?.styleElements ??
 		(() => {
@@ -139,17 +152,25 @@ export function createIsolatedCalloutPreview(
 		})();
 
 	for (const style of styleElements) {
-		dom.appendChild(style.cloneNode(true));
+		const styleClone = style.cloneNode(true);
+		if (style.tagName === 'STYLE') {
+			providedStyleEls.push(styleClone as HTMLStyleElement);
+		}
+
+		frag.appendChild(styleClone);
 	}
 
 	// Add styles to reset all properties on everything above the callout.
 	//
 	// This is so we can keep the selectors consistent between real Obsidian and our fake one, without
 	// having those elements affect the display of the callout itself.
-	dom.createEl('style', { text: SHADOW_DOM_RESET_STYLES });
+	frag.createEl('style', { text: SHADOW_DOM_RESET_STYLES });
+
+	// Add custom style element.
+	const customStyleEl = frag.createEl('style', { attr: { 'data-custom-styles': 'true' } });
 
 	// Create a fake DOM tree to host the callout.
-	const viewContentEl = dom
+	const viewContentEl = frag
 		.createEl('body', { cls: `theme-${theme} obsidian-app` })
 		.createDiv({ cls: 'app-container' })
 		.createDiv({ cls: 'horizontal-main-container' })
@@ -165,8 +186,16 @@ export function createIsolatedCalloutPreview(
 		? createReadingViewCalloutElementTree(viewContentEl)
 		: createLiveViewCalloutElementTree(viewContentEl);
 
+	// Attach the callout to the shadow DOM.
+	const dom = targetEl.attachShadow({ delegatesFocus: false, mode: 'closed' });
+	dom.appendChild(frag);
+
 	// Create the callout inside the fake DOM.
-	return createCalloutPreview(calloutParentEl.createDiv(), id, options);
+	return {
+		...createCalloutPreview(calloutParentEl.createDiv(), id, options),
+		customStyleEl,
+		providedStyleEls,
+	};
 }
 
 function createReadingViewCalloutElementTree(viewContentEl: HTMLDivElement): HTMLDivElement {
@@ -224,7 +253,7 @@ const SHADOW_DOM_RESET_STYLES = `
 /* Override margin on callout to keep the preview as small as possible. */
 .markdown-preview-section > div > .callout,
 .cm-callout > .callout,
-.callout {
+.callout-manager-preview.callout {
 	margin: 0 !important;
 }
 

@@ -7,6 +7,15 @@
 
 	// Prevent scrolling on the parent container so we can have a sticky header.
 	overflow-y: initial;
+
+	// Variables.
+	& {
+		// Set a margin that allows the controls to become padding if there's nothing inside them.
+		--cm-setting-tab-controls-margin: calc(var(--size-4-12) - (var(--size-4-2) - var(--size-4-1)));
+		body.is-phone & {
+			--cm-setting-tab-controls-margin: var(--size-4-2);
+		}
+	}
 }
 
 // The setting tab header.
@@ -60,20 +69,20 @@
 
 // The setting tab nav within the header.
 .callout-manager-setting-tab-controls {
-	flex: 1 2 auto;
+	flex: 3 3;
 
 	display: flex;
 	align-items: center;
 	justify-content: end;
+	gap: var(--size-4-2);
 
-	// Set a margin that allows the controls to become padding if there's nothing inside them.
-	padding-left: calc(var(--size-4-12) - (var(--size-4-2) - var(--size-4-1)));
+	padding-left: var(--cm-setting-tab-controls-margin);
 
 	// Make the real control elements transparent to the container.
 	> *:not(.modal-close-button) {
 		display: contents;
 
-		> input[type="text"] {
+		> input[type='text'] {
 			flex: 1 1 auto;
 		}
 	}
@@ -81,36 +90,45 @@
 
 .callout-manager-setting-tab-controls .modal-close-button {
 	flex: 0 0 auto;
-	margin-left: var(--size-4-2);
 
 	position: static;
 	left: unset;
 	top: 0;
 	right: 0;
 	bottom: 0;
+
+	body.is-phone & {
+		display: none;
+	}
 }
 
 // The setting tab title within the header.
 .callout-manager-setting-tab-title {
 	flex: 1 1 auto;
+	flex-wrap: nowrap;
 
 	h2,
 	h3 {
 		margin: 0;
+		word-break: keep-all;
+	}
+
+	h3 {
+		font-size: var(--font-ui-small);
 	}
 
 	body:not(.is-phone) & h3 {
 		font-size: 0.8em;
 	}
 
-	body.is-phone & h2:has(+h3) {
+	body.is-phone & h2:has(+ h3) {
 		display: none;
 	}
 }
 
 // The scroll container for the setting tab.
 .callout-manager-setting-tab-viewport {
-	flex: 1 1 auto;
+	flex: 1 2 auto;
 
 	// Enable scrolling.
 	overflow-y: auto;
@@ -119,7 +137,10 @@
 
 .callout-manager-setting-tab-content {
 	flex: 1 1 auto;
-	min-height: 100%;
+
+	body:not(.is-phone) {
+		min-height: 100%;
+	}
 }
 
 // A centered box to help display help messages for empty searches.

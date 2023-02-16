@@ -20,15 +20,18 @@ export default class StylesheetWatcher {
 
 	protected watching: boolean;
 	protected app: App;
+	protected disableObsidianStylesheet: boolean;
 
-	public constructor(app: ObsidianApp) {
+	public constructor(app: ObsidianApp, disableObsidianStylesheet: boolean) {
 		this.app = app as App<Latest>;
 
 		this.listeners = new Map();
 		this.cachedSnippets = new Map();
-		this.cachedObsidian = null;
+		this.cachedObsidian = disableObsidianStylesheet ? false : null;
 		this.cachedTheme = null;
 		this.watching = false;
+
+		this.disableObsidianStylesheet = disableObsidianStylesheet;
 	}
 
 	/**
@@ -44,7 +47,7 @@ export default class StylesheetWatcher {
 		const events: Array<EventListenerDeclaration> = [
 			{
 				event: 'css-change',
-				listener: this.checkForChanges.bind(this),
+				listener: () => this.checkForChanges(false),
 				target: this.app.workspace,
 			},
 		];
@@ -100,6 +103,22 @@ export default class StylesheetWatcher {
 	public on(event: 'remove', listener: (stylesheet: SnippetStylesheet | ThemeStylesheet) => void): void;
 
 	/**
+	 * Register an event listener to be called whenever the {@link StylesheetWatcher} starts checking for changes.
+	 *
+	 * @param event The `checkStarted` event.
+	 * @param listener The listener to be called.
+	 */
+	public on(event: 'checkStarted', listener: () => void): void;
+
+	/**
+	 * Register an event listener to be called whenever the {@link StylesheetWatcher} finishes checking for changes.
+	 *
+	 * @param event The `checkComplete` event.
+	 * @param listener The listener to be called.
+	 */
+	public on(event: 'checkComplete', listener: (anyChanges: boolean) => void): void;
+
+	/**
 	 * @internal
 	 */
 	public on<E extends keyof StylesheetWatcherEvents>(event: E, listener: StylesheetWatcherEvents[E]): void {
@@ -148,17 +167,30 @@ export default class StylesheetWatcher {
 	 * Checks for any changes to the application stylesheets.
 	 * If {@link watch} is being used, this will be called automatically.
 	 *
+	 * @param clear If set to true, the cache will be cleared.
 	 * @returns True if there were any changes.
 	 */
-	public async checkForChanges(): Promise<boolean> {
+	public async checkForChanges(clear?: boolean): Promise<boolean> {
 		let changed = false;
+		this.emit('checkStarted');
 
-		if (this.cachedObsidian == null) {
+		// Clear caches.
+		if (clear === true) {
+			this.cachedSnippets.clear();
+			this.cachedTheme = null;
+			this.cachedObsidian = null;
+		}
+
+		// Fetch the Obsidian stylesheet.
+		if (this.cachedObsidian == null && !this.disableObsidianStylesheet) {
 			changed = (await this.checkForChangesObsidian()) || changed;
 		}
 
+		// Check snippet and theme stylesheets.
 		changed = this.checkForChangesSnippets() || changed;
 		changed = this.checkForChangesTheme() || changed;
+
+		this.emit('checkComplete', changed);
 		return changed;
 	}
 
@@ -279,6 +311,13 @@ export default class StylesheetWatcher {
 		// Return.
 		return anyChanges;
 	}
+
+	/**
+	 * Returns true if fetching the Obsidian stylesheet is supported.
+	 */
+	public isObsidianStylesheetSupported(): boolean {
+		return !this.disableObsidianStylesheet && this.cachedObsidian !== false;
+	}
 }
 
 /**
@@ -288,6 +327,8 @@ export interface StylesheetWatcherEvents {
 	add(stylesheet: SnippetStylesheet | ThemeStylesheet): void;
 	change(stylesheet: SnippetStylesheet | ThemeStylesheet | ObsidianStylesheet): void;
 	remove(stylesheet: SnippetStylesheet | ThemeStylesheet): void;
+	checkComplete(anyChanges: boolean): void;
+	checkStarted(): void;
 }
 
 export interface SnippetStylesheet {

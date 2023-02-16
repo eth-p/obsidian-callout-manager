@@ -4,8 +4,6 @@ import { closeSettings } from 'obsidian-extra/unsafe';
 
 import CalloutManagerPlugin from '../main';
 
-import { ManagePluginPane } from './ManagePluginPane';
-
 /**
  * The settings tab (UI) that will show up under Obsidian's settings.
  *

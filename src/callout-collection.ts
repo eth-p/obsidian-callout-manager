@@ -252,6 +252,12 @@ class CalloutCollectionSnippets {
 		return deleted;
 	}
 
+	public clear(): void {
+		for (const id of Array.from(this.data.keys())) {
+			this.delete(id);
+		}
+	}
+
 	public keys(): SnippetID[] {
 		return Array.from(this.data.keys());
 	}
@@ -401,6 +407,8 @@ function sourceToKey(source: CalloutSource): string {
 			return `snippet:${source.snippet}`;
 		case 'theme':
 			return `theme:${source.theme}`;
+		case 'custom':
+			return `custom`;
 	}
 }
 
@@ -415,12 +423,16 @@ function sourceFromKey(sourceKey: string): CalloutSource {
 		return { type: 'builtin' };
 	}
 
-	if (sourceKey.startsWith('snippet')) {
-		return { type: 'snippet', snippet: sourceKey.substring('snippet'.length) };
+	if (sourceKey === 'custom') {
+		return { type: 'custom' };
 	}
 
-	if (sourceKey.startsWith('theme')) {
-		return { type: 'theme', theme: sourceKey.substring('theme'.length) };
+	if (sourceKey.startsWith('snippet:')) {
+		return { type: 'snippet', snippet: sourceKey.substring('snippet:'.length) };
+	}
+
+	if (sourceKey.startsWith('theme:')) {
+		return { type: 'theme', theme: sourceKey.substring('theme:'.length) };
 	}
 
 	throw new Error('Unknown source key: ' + sourceKey);
