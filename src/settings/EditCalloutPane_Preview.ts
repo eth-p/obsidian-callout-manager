@@ -36,6 +36,7 @@ export class EditCalloutPanePreview {
 
 		this.preview = createIsolatedCalloutPreview(this.sectionEl.createDiv(), callout.id, {
 			title: callout.id,
+			overrideIcon: callout.icon, // Needed since we can't determine the icon until it's attached to the DOM.
 			contents: (containerEl) => {
 				containerEl.createEl('p', { text: this.previewMarkdown });
 			},
@@ -118,13 +119,19 @@ export class EditCalloutPanePreview {
 	 * @param settings The settings to use.
 	 */
 	public async changeSettings(settings: CalloutSettings): Promise<void> {
+		const {calloutEl, customStyleEl, providedStyleEls} = this.preview;
 		const styles = calloutSettingsToCSS(this.calloutId, settings, currentCalloutEnvironment(this.plugin.app));
-		this.preview.customStyleEl.textContent = styles;
+		customStyleEl.textContent = styles;
+
 		this.calloutHasIconReady = false;
+
+		// Remove any overridden styles.
+		calloutEl.style.removeProperty('--callout-icon');
+		calloutEl.style.removeProperty('--callout-color');
 
 		// Remove the preview styles added by callout manager.
 		// Now that we changed the settings, having the old styles would lead to inconsistency.
-		this.preview.providedStyleEls.forEach(el => {
+		providedStyleEls.forEach(el => {
 			if (el.getAttribute('data-inject-id') === 'callout-settings') {
 				el.remove();
 			}
