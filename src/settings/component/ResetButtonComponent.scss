@@ -1,4 +1,4 @@
 // The "undo" button when the setting has not been changed from the default.
-.calloutmanager-setting-undo:is(.is-disabled, [disabled]) {
+.calloutmanager-reset-button:is(.is-disabled, [disabled]) {
 	opacity: 0.3;
 }

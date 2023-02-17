@@ -40,6 +40,7 @@ export class EditCalloutPane extends CMSettingPane {
 			this.plugin,
 			this.callout,
 			plugin.getCalloutSettings(id) ?? [],
+			() => this.nav,
 			(settings) => {
 				this.previewSection.changeSettings(settings);
 				this.plugin.setCalloutSettings(this.callout.id, settings);

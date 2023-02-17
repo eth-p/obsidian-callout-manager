@@ -11,6 +11,7 @@ import {
 	CalloutSettingsColorSchemeCondition,
 } from '../settings';
 
+import { CMSettingPaneNavigation } from './CMSettingTab';
 import { CalloutColorSetting } from './setting/CalloutColorSetting';
 import { CalloutIconSetting } from './setting/CalloutIconSetting';
 
@@ -20,6 +21,7 @@ import { CalloutIconSetting } from './setting/CalloutIconSetting';
 export class EditCalloutPaneAppearance {
 	private readonly plugin: CalloutManagerPlugin;
 	private readonly onChangeNotify: (settings: CalloutSettings) => void;
+	private readonly getNav: () => CMSettingPaneNavigation;
 
 	private callout: Callout;
 	private categorized: CategorizedCalloutSettings;
@@ -31,9 +33,11 @@ export class EditCalloutPaneAppearance {
 		plugin: CalloutManagerPlugin,
 		callout: Callout,
 		initial: CalloutSettings,
+		getNav: () => CMSettingPaneNavigation,
 		onChange: (settings: CalloutSettings) => void,
 	) {
 		this.plugin = plugin;
+		this.getNav = getNav;
 		this.callout = callout;
 		this.categorized = categorizeSettings(initial);
 		this.onChangeNotify = onChange;
@@ -60,18 +64,20 @@ export class EditCalloutPaneAppearance {
 	}
 
 	protected refresh() {
-		const { plugin, categorized, callout, containerEl } = this;
+		const { plugin, categorized, callout, containerEl, getNav } = this;
 		containerEl.empty();
 
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		CATEGORIES[categorized.type].render(plugin, containerEl, callout, categorized as any, (newCat) => {
-			this.categorized = newCat;
-			console.log('UPDATING TO', newCat);
-
+		CATEGORIES[categorized.type].render(
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			this.onChangeNotify(CATEGORIES[newCat.type].serialize(newCat as any));
-			this.refresh();
-		});
+			{ plugin, containerEl, callout, getNav, cat: categorized as CategorizedCalloutSettings } as any,
+			(newCat) => {
+				this.categorized = newCat;
+
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				this.onChangeNotify(CATEGORIES[newCat.type].serialize(newCat as any));
+				this.refresh();
+			},
+		);
 	}
 }
 
@@ -160,9 +166,7 @@ function categorizeSettings(settings: CalloutSettings): CategorizedCalloutSettin
 	// If there aren't any dark or light appearance colors, it's a unified color.
 	if (appearanceColor.dark === undefined && appearanceColor.light === undefined) {
 		if (otherChanges.color === undefined) {
-			return Object.keys(otherChanges).length === 0
-				? { type: 'unified', color: undefined, otherChanges }
-				: COMPLEX;
+			return { type: 'unified', color: undefined, otherChanges };
 		}
 
 		return { type: 'unified', color: otherChanges.color, otherChanges };
@@ -182,10 +186,13 @@ function categorizeSettings(settings: CalloutSettings): CategorizedCalloutSettin
 type CategorizedCalloutSettingsHandlers = {
 	[key in CategorizedCalloutSettings['type']]: {
 		render(
-			plugin: CalloutManagerPlugin,
-			containerEl: HTMLElement,
-			callout: Callout,
-			cat: Extract<CategorizedCalloutSettings, { type: key }>,
+			vars: {
+				plugin: CalloutManagerPlugin;
+				containerEl: HTMLElement;
+				callout: Callout;
+				cat: Extract<CategorizedCalloutSettings, { type: key }>;
+				getNav: () => CMSettingPaneNavigation;
+			},
 			update: (cat: CategorizedCalloutSettings) => void,
 		): void;
 		serialize(cat: Extract<CategorizedCalloutSettings, { type: key }>): CalloutSettings;
@@ -206,7 +213,7 @@ const CATEGORIES: CategorizedCalloutSettingsHandlers = {
 				},
 			];
 		},
-		render(plugin, containerEl, callout, cat, update) {
+		render({ plugin, containerEl, callout, cat, getNav }, update) {
 			const colorScheme = getCurrentColorScheme(plugin.app);
 			const otherColorScheme = colorScheme === 'dark' ? 'light' : 'dark';
 
@@ -234,7 +241,11 @@ const CATEGORIES: CategorizedCalloutSettingsHandlers = {
 						}),
 				);
 
-			new CalloutIconSetting(containerEl, callout).setName('Icon').setDesc('Change the callout icon.');
+			new CalloutIconSetting(containerEl, callout, plugin, getNav)
+				.setName('Icon')
+				.setDesc('Change the callout icon.')
+				.setIcon(cat.otherChanges.icon)
+				.onChange((icon) => update({ ...cat, otherChanges: { ...cat.otherChanges, icon } }));
 		},
 	},
 
@@ -261,7 +272,7 @@ const CATEGORIES: CategorizedCalloutSettingsHandlers = {
 				},
 			];
 		},
-		render(plugin, containerEl, callout, cat, update) {
+		render({ containerEl, getNav, callout, cat, plugin }, update) {
 			const { colorDark, colorLight } = cat;
 
 			function doUpdate(cat: Extract<CategorizedCalloutSettings, { type: 'split' }>) {
@@ -285,12 +296,16 @@ const CATEGORIES: CategorizedCalloutSettingsHandlers = {
 				.setColorString(colorLight)
 				.onChange((color) => doUpdate({ ...cat, colorLight: color }));
 
-			new CalloutIconSetting(containerEl, callout).setName('Icon').setDesc('Change the callout icon.');
+			new CalloutIconSetting(containerEl, callout, plugin, getNav)
+				.setName('Icon')
+				.setDesc('Change the callout icon.')
+				.setIcon(cat.otherChanges.icon)
+				.onChange((icon) => doUpdate({ ...cat, otherChanges: { ...cat.otherChanges, icon } }));
 		},
 	},
 
 	complex: {
-		render(plugin, containerEl, callout, cat, update) {
+		render({ containerEl, cat }, update) {
 			const complexJson = JSON.stringify(cat.settings, undefined, '  ');
 			containerEl.createEl('p', {
 				text:

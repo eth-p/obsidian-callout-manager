@@ -36,7 +36,6 @@ export class EditCalloutPanePreview {
 
 		this.preview = createIsolatedCalloutPreview(this.sectionEl.createDiv(), callout.id, {
 			title: callout.id,
-			overrideIcon: callout.icon,
 			contents: (containerEl) => {
 				containerEl.createEl('p', { text: this.previewMarkdown });
 			},
@@ -86,7 +85,7 @@ export class EditCalloutPanePreview {
 		const { iconEl, calloutEl } = this.preview;
 
 		if (window.document.contains(this.sectionEl)) {
-			const icon = window.getComputedStyle(calloutEl).getPropertyValue('--callout-icon');
+			const icon = window.getComputedStyle(calloutEl).getPropertyValue('--callout-icon').trim();
 			const iconSvg = getIcon(icon) ?? document.createElement('svg');
 
 			iconEl.empty();
@@ -122,6 +121,14 @@ export class EditCalloutPanePreview {
 		const styles = calloutSettingsToCSS(this.calloutId, settings, currentCalloutEnvironment(this.plugin.app));
 		this.preview.customStyleEl.textContent = styles;
 		this.calloutHasIconReady = false;
+
+		// Remove the preview styles added by callout manager.
+		// Now that we changed the settings, having the old styles would lead to inconsistency.
+		this.preview.providedStyleEls.forEach(el => {
+			if (el.getAttribute('data-inject-id') === 'callout-settings') {
+				el.remove();
+			}
+		})
 	}
 
 	/**

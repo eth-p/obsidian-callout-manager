@@ -1,0 +1,35 @@
+:root {
+	--calloutmanager-icon-preview-icon-size: 1em;
+	--calloutmanager-icon-preview-id-size: 0.8em;
+}
+
+
+.calloutmanager-icon-preview {
+	position: relative;
+	height: unset;
+	min-height: 3em;
+
+	display: flex;
+	flex-direction: column;
+}
+
+.calloutmanager-icon-preview--icon {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, calc(-50% - 0.5em));
+
+	--icon-size: var(--calloutmanager-icon-picker-icon-size);
+}
+
+.calloutmanager-icon-preview--id {
+	width: 100%;
+	margin-top: auto;
+
+	// Break words.
+	white-space: normal;
+	word-break: break-word;
+	hyphens: manual;
+
+	font-size: var(--calloutmanager-icon-picker-id-size);
+}

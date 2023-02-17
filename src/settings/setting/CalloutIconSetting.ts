@@ -1,7 +1,10 @@
-import { ButtonComponent, ExtraButtonComponent, Setting, getIcon, getIconIds } from 'obsidian';
+import { ButtonComponent, ExtraButtonComponent, Setting, getIcon } from 'obsidian';
 
 import { Callout } from '../../../api';
+import CalloutManagerPlugin from '../../main';
+import { CMSettingPaneNavigation } from '../CMSettingTab';
 import { ResetButtonComponent } from '../component/ResetButtonComponent';
+import { SelectIconPane } from '../pane/SelectIconPane';
 
 /**
  * An Obsidian {@link Setting} for picking the icon of a callout.
@@ -15,7 +18,12 @@ export class CalloutIconSetting extends Setting {
 	private iconName: string | undefined;
 	private onChanged: ((value: string | undefined) => void) | undefined;
 
-	public constructor(containerEl: HTMLElement, callout: Callout) {
+	public constructor(
+		containerEl: HTMLElement,
+		callout: Callout,
+		plugin: CalloutManagerPlugin,
+		getNav: () => CMSettingPaneNavigation,
+	) {
 		super(containerEl);
 		this.onChanged = undefined;
 		this.callout = callout;
@@ -25,7 +33,11 @@ export class CalloutIconSetting extends Setting {
 		// Create the setting archetype.
 		this.addButton((btn) => {
 			this.buttonComponent = btn;
-			// btn.onClick(() => this.onChanged?.(this.isDefault ? this.getColor().join(', ') : undefined));
+			btn.onClick(() => {
+				getNav().open(
+					new SelectIconPane(plugin, 'Select Icon', { onChoose: (icon) => this.onChanged?.(icon) }),
+				);
+			});
 		});
 
 		this.components.push(

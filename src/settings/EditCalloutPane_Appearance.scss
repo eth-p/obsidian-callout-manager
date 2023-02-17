@@ -6,6 +6,10 @@
 
 	.setting-item:has(+ .setting-item) {
 		padding-bottom: 0.375em;
+
+		body.is-phone & {
+			margin-bottom: 0.7em;
+		}
 	}
 
 	.setting-item + .setting-item {

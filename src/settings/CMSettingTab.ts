@@ -281,11 +281,13 @@ class CMSettingPaneLayers {
 	}
 }
 
-interface CMSettingPaneNavigation {
+export interface CMSettingPaneNavigation {
 	close(): void;
 	open(pane: CMSettingPane<unknown>): void;
 	replace(pane: CMSettingPane<unknown>): void;
 }
+
+export type CMSettingPaneTitle = string | { title: string; subtitle: string };
 
 /**
  * A setting pane that exists within the setting tab.
@@ -300,7 +302,7 @@ export abstract class CMSettingPane<S = unknown> {
 	/**
 	 * The title of the pane.
 	 */
-	public abstract get title(): string | { title: string; subtitle: string };
+	public abstract get title(): CMSettingPaneTitle;
 
 	/**
 	 * Called to render the pane to its container element.
