@@ -132,6 +132,7 @@ class CMSettingPaneLayers {
 		this.setPaneVariables(newPane, true);
 		newPane.onReady();
 		this.doDisplay(true);
+		this.scrollEl.scrollTo({ top: 0, left: 0 });
 	}
 
 	/**

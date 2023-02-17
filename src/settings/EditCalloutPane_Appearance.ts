@@ -1,6 +1,7 @@
 import { ButtonComponent, ColorComponent, Setting } from 'obsidian';
 
 import { Callout } from '../../api';
+import { getColorFromCallout } from '../callout-resolver';
 import { typeofCondition } from '../callout-settings';
 import CalloutManagerPlugin from '../main';
 import {
@@ -64,7 +65,7 @@ export class EditCalloutPaneAppearance {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		CATEGORIES[categorized.type].render(plugin, containerEl, callout, categorized as any, (newCat) => {
 			this.categorized = newCat;
-			console.log("UPDATING TO", newCat);
+			console.log('UPDATING TO', newCat);
 
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			this.onChangeNotify(CATEGORIES[newCat.type].serialize(newCat as any));
@@ -203,11 +204,10 @@ const CATEGORIES: CategorizedCalloutSettingsHandlers = {
 				.setName('Color')
 				.setDesc('Change the color of the callout.')
 				.then((setting) => {
-					const [r, g, b] = (color ?? callout.color).split(',').map((c) => parseInt(c.trim(), 10));
-
+					const rgb = getColorFromCallout({ ...callout, color: color ?? callout.color }) ?? [0, 0, 0];
 					setting.addColorPicker((picker) => {
 						picker
-							.setValueRgb({ r, g, b })
+							.setValueRgb({ r: rgb[0], g: rgb[1], b: rgb[2] })
 							.then((p) => ((p as ColorComponentWithEl).colorPickerEl.disabled = !hasColorOverride))
 							.onChange((value) =>
 								update({ ...cat, color: Object.values(picker.getValueRgb()).join(', ') }),
@@ -219,6 +219,7 @@ const CATEGORIES: CategorizedCalloutSettingsHandlers = {
 							.setIcon(hasColorOverride ? 'lucide-eraser' : 'lucide-paint-bucket')
 							.setTooltip(hasColorOverride ? 'Reset Callout Color' : 'Change Callout Color')
 							.setClass('clickable-icon')
+							.setClass(`callout-manager-setting-${hasColorOverride ? 'set' : 'cleared'}`)
 							.onClick(() => update({ ...cat, color: hasColorOverride ? undefined : callout.color })),
 					);
 				});

@@ -167,12 +167,36 @@
 		}
 	}
 
+	input[type='color'][disabled] {
+		cursor: not-allowed;
+	}
+
 	// Make invalid text boxes look invalid.
 	input:invalid:not(:placeholder-shown) {
 		border-color: var(--text-error);
 	}
 
-	input[type='color'][disabled] {
-		cursor: not-allowed;
+	// Improve color picker UX on mobile.
+	body.is-phone & input[type='color']::-webkit-color-swatch {
+		border-radius: var(--button-radius);
+		border: #f00 2px solid;
+		border: 1px solid var(--checkbox-border-color);
+	}
+}
+
+// Make clickable icons not too large on mobile.
+.callout-manager-setting-tab-content .setting-item-control,
+.callout-manager-setting-tab-controls {
+	body.is-phone & button.clickable-icon {
+		width: var(--button-height);
+	}
+}
+
+// Make clickable icons in setting panes more visible on mobile.
+body.is-phone .callout-manager-setting-tab-content .setting-item-control button.clickable-icon {
+	border: 1px solid var(--checkbox-border-color);
+
+	&.callout-manager-setting-set {
+		// background-color: var(--background-modifier-border);
 	}
 }
