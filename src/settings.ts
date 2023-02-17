@@ -18,11 +18,11 @@ export default interface Settings {
 
 // Callout settings type definitions.
 
-export type CalloutSettingsConditionType = 'theme' | 'appearance' | 'and' | 'or';
+export type CalloutSettingsConditionType = 'theme' | 'colorScheme' | 'and' | 'or';
 
 export type CalloutSettingsThemeCondition = { theme: ThemeID | '<default>' };
-export type CalloutSettingsAppearanceCondition = { appearance: 'dark' | 'light' };
-export type CalloutSettingsElementaryConditions = CalloutSettingsThemeCondition | CalloutSettingsAppearanceCondition;
+export type CalloutSettingsColorSchemeCondition = { colorScheme: 'dark' | 'light' };
+export type CalloutSettingsElementaryConditions = CalloutSettingsThemeCondition | CalloutSettingsColorSchemeCondition;
 export type CalloutSettingsCombinatoryConditions =
 	| { and: CalloutSettingsCondition[] }
 	| { or: CalloutSettingsCondition[] };

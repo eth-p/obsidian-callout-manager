@@ -253,7 +253,7 @@ export class ManageCalloutsPane extends CMSettingPane {
 		if (!this.viewOnly) {
 			new ButtonComponent(controlsEl)
 				.setIcon('lucide-plus')
-				.setTooltip('Create new Callout')
+				.setTooltip('New Callout')
 				.onClick(() => this.nav.open(new CreateCalloutPane(this.plugin)))
 				.then(({ buttonEl }) => buttonEl.classList.add('clickable-icon'));
 		}

@@ -1,15 +1,18 @@
-import { ButtonComponent, ColorComponent, Setting } from 'obsidian';
+import { ButtonComponent, Setting } from 'obsidian';
+import { getCurrentColorScheme } from 'obsidian-extra';
 
 import { Callout } from '../../api';
-import { getColorFromCallout } from '../callout-resolver';
 import { typeofCondition } from '../callout-settings';
 import CalloutManagerPlugin from '../main';
 import {
 	CalloutSetting,
 	CalloutSettings,
-	CalloutSettingsAppearanceCondition,
 	CalloutSettingsChanges,
+	CalloutSettingsColorSchemeCondition,
 } from '../settings';
+
+import { CalloutColorSetting } from './setting/CalloutColorSetting';
+import { CalloutIconSetting } from './setting/CalloutIconSetting';
 
 /**
  * The appearance section of the edit callout pane.
@@ -18,7 +21,6 @@ export class EditCalloutPaneAppearance {
 	private readonly plugin: CalloutManagerPlugin;
 	private readonly onChangeNotify: (settings: CalloutSettings) => void;
 
-	private settings: CalloutSettings;
 	private callout: Callout;
 	private categorized: CategorizedCalloutSettings;
 	private containerEl: HTMLElement;
@@ -33,7 +35,6 @@ export class EditCalloutPaneAppearance {
 	) {
 		this.plugin = plugin;
 		this.callout = callout;
-		this.settings = initial;
 		this.categorized = categorizeSettings(initial);
 		this.onChangeNotify = onChange;
 
@@ -74,11 +75,20 @@ export class EditCalloutPaneAppearance {
 	}
 }
 
-type ColorComponentWithEl = ColorComponent & { colorPickerEl: HTMLInputElement };
+// ---------------------------------------------------------------------------------------------------------------------
+// Categorizatiom:
+// Try to categorize the settings so we know how to display the UI for changing the appearance.
+// ---------------------------------------------------------------------------------------------------------------------
+
 type CategorizedCalloutSettings =
 	| { type: 'complex'; settings: CalloutSettings }
 	| { type: 'unified'; color: string | undefined; otherChanges: CalloutSettingsChanges }
-	| { type: 'split'; colorDark: string; colorLight: string; otherChanges: CalloutSettingsChanges };
+	| {
+			type: 'split';
+			colorDark: string | undefined;
+			colorLight: string | undefined;
+			otherChanges: CalloutSettingsChanges;
+	  };
 
 /**
  * Classifies the provided callout settings.
@@ -95,7 +105,7 @@ function categorizeSettings(settings: CalloutSettings): CategorizedCalloutSettin
 	const COMPLEX: { type: 'complex'; settings: CalloutSettings } = { type: 'complex', settings };
 
 	// Ensure all the conditions are only "appearance".
-	const settingsWithAppearanceCondition: CalloutSettings<CalloutSettingsAppearanceCondition> = [];
+	const settingsWithColorSchemeCondition: CalloutSettings<CalloutSettingsColorSchemeCondition> = [];
 	const settingsWithNoCondition: CalloutSettings<undefined> = [];
 	for (const setting of settings) {
 		const type = typeofCondition(setting.condition);
@@ -105,8 +115,8 @@ function categorizeSettings(settings: CalloutSettings): CategorizedCalloutSettin
 			case 'theme':
 				return COMPLEX;
 
-			case 'appearance':
-				settingsWithAppearanceCondition.push(setting as CalloutSetting<CalloutSettingsAppearanceCondition>);
+			case 'colorScheme':
+				settingsWithColorSchemeCondition.push(setting as CalloutSetting<CalloutSettingsColorSchemeCondition>);
 				break;
 
 			case undefined:
@@ -117,7 +127,7 @@ function categorizeSettings(settings: CalloutSettings): CategorizedCalloutSettin
 
 	// Check to see that the appearance conditions only change the color.
 	const appearanceColor = { dark: undefined as undefined | string, light: undefined as undefined | string };
-	for (const setting of settingsWithAppearanceCondition) {
+	for (const setting of settingsWithColorSchemeCondition) {
 		const changed = Object.keys(setting.changes);
 		if (changed.length === 0) {
 			continue;
@@ -128,7 +138,7 @@ function categorizeSettings(settings: CalloutSettings): CategorizedCalloutSettin
 		}
 
 		// Keep track of the changed color.
-		const appearanceCond = setting.condition.appearance;
+		const appearanceCond = setting.condition.colorScheme;
 		if (appearanceColor[appearanceCond] === undefined) {
 			appearanceColor[appearanceCond] = setting.changes.color;
 		} else {
@@ -197,32 +207,85 @@ const CATEGORIES: CategorizedCalloutSettingsHandlers = {
 			];
 		},
 		render(plugin, containerEl, callout, cat, update) {
-			const { color } = cat;
-			const hasColorOverride = color !== undefined;
+			const colorScheme = getCurrentColorScheme(plugin.app);
+			const otherColorScheme = colorScheme === 'dark' ? 'light' : 'dark';
 
-			new Setting(containerEl)
+			new CalloutColorSetting(containerEl, callout)
 				.setName('Color')
 				.setDesc('Change the color of the callout.')
-				.then((setting) => {
-					const rgb = getColorFromCallout({ ...callout, color: color ?? callout.color }) ?? [0, 0, 0];
-					setting.addColorPicker((picker) => {
-						picker
-							.setValueRgb({ r: rgb[0], g: rgb[1], b: rgb[2] })
-							.then((p) => ((p as ColorComponentWithEl).colorPickerEl.disabled = !hasColorOverride))
-							.onChange((value) =>
-								update({ ...cat, color: Object.values(picker.getValueRgb()).join(', ') }),
-							);
-					});
+				.setColorString(cat.color)
+				.onChange((color) => update({ ...cat, otherChanges: cat.otherChanges, color }));
 
-					setting.addButton((btn) =>
-						btn
-							.setIcon(hasColorOverride ? 'lucide-eraser' : 'lucide-paint-bucket')
-							.setTooltip(hasColorOverride ? 'Reset Callout Color' : 'Change Callout Color')
-							.setClass('clickable-icon')
-							.setClass(`callout-manager-setting-${hasColorOverride ? 'set' : 'cleared'}`)
-							.onClick(() => update({ ...cat, color: hasColorOverride ? undefined : callout.color })),
-					);
-				});
+			new Setting(containerEl)
+				.setName(`Color Scheme`)
+				.setDesc(`Change the color of the callout for the ${otherColorScheme} color scheme.`)
+				.addButton((btn) =>
+					btn
+						.setClass('clickable-icon')
+						.setIcon('lucide-sun-moon')
+						.onClick(() => {
+							const color = cat.color ?? callout.color;
+							update({
+								type: 'split',
+								colorDark: color,
+								colorLight: color,
+								otherChanges: cat.otherChanges,
+							});
+						}),
+				);
+
+			new CalloutIconSetting(containerEl, callout).setName('Icon').setDesc('Change the callout icon.');
+		},
+	},
+
+	split: {
+		serialize(cat): CalloutSettings {
+			return [
+				{
+					condition: undefined,
+					changes: {
+						...cat.otherChanges,
+					},
+				},
+				{
+					condition: { colorScheme: 'light' },
+					changes: {
+						color: cat.colorLight,
+					},
+				},
+				{
+					condition: { colorScheme: 'dark' },
+					changes: {
+						color: cat.colorDark,
+					},
+				},
+			];
+		},
+		render(plugin, containerEl, callout, cat, update) {
+			const { colorDark, colorLight } = cat;
+
+			function doUpdate(cat: Extract<CategorizedCalloutSettings, { type: 'split' }>) {
+				if (cat.colorDark === undefined && cat.colorLight === undefined) {
+					update({ type: 'unified', color: undefined, otherChanges: cat.otherChanges });
+					return;
+				}
+
+				update(cat);
+			}
+
+			new CalloutColorSetting(containerEl, callout)
+				.setName('Dark Color')
+				.setDesc('Change the color of the callout for the dark color scheme.')
+				.setColorString(colorDark)
+				.onChange((color) => doUpdate({ ...cat, colorDark: color }));
+
+			new CalloutColorSetting(containerEl, callout)
+				.setName(`Light Color`)
+				.setDesc(`Change the color of the callout for the light color scheme.`)
+				.setColorString(colorLight)
+				.onChange((color) => doUpdate({ ...cat, colorLight: color }));
+
+			new CalloutIconSetting(containerEl, callout).setName('Icon').setDesc('Change the callout icon.');
 		},
 	},
 

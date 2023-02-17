@@ -1,5 +1,5 @@
 import { App } from 'obsidian';
-import { getCurrentThemeID } from 'obsidian-extra';
+import { getCurrentColorScheme, getCurrentThemeID } from 'obsidian-extra';
 
 import { CalloutID } from '../api';
 
@@ -16,7 +16,7 @@ export function currentCalloutEnvironment(app: App): Parameters<typeof checkCond
 	const theme = getCurrentThemeID(app) ?? '<default>';
 	return {
 		theme,
-		appearance: app.workspace.containerEl.doc.body.classList.contains('theme-dark') ? 'dark' : 'light',
+		colorScheme: getCurrentColorScheme(app),
 	};
 }
 
@@ -76,7 +76,7 @@ export function calloutSettingsToStyles(
  */
 function checkCondition(
 	condition: CalloutSettingsCondition,
-	environment: { theme: string; appearance: 'dark' | 'light' },
+	environment: { theme: string; colorScheme: 'dark' | 'light' },
 ): boolean {
 	if (condition == null) {
 		return true;
@@ -98,7 +98,7 @@ function checkCondition(
 	}
 
 	// Dark mode condition.
-	if ('appearance' in condition && condition.appearance !== environment.appearance) {
+	if ('colorScheme' in condition && condition.colorScheme === environment.colorScheme) {
 		return true;
 	}
 
@@ -127,7 +127,7 @@ export function typeofCondition(condition: CalloutSettingsCondition): CalloutSet
 		type: CalloutSettingsConditionType,
 	) => boolean;
 
-	if (hasOwnProperty('appearance')) return 'appearance';
+	if (hasOwnProperty('colorScheme')) return 'colorScheme';
 	if (hasOwnProperty('theme')) return 'theme';
 	if (hasOwnProperty('and')) return 'and';
 	if (hasOwnProperty('or')) return 'or';

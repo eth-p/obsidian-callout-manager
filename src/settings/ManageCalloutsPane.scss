@@ -15,16 +15,15 @@
 	color: var(--text-muted);
 }
 
-
 .callout-manager-preview-container-with-button {
-	--cm-edit-button-size: calc(var(--input-height) + 2*var(--size-4-3));
+	--cm-edit-button-size: calc(var(--input-height) + 2 * var(--size-4-3));
 	body.is-phone & {
 		--cm-edit-button-size: var(--input-height);
 	}
 
 	// Conver the preview into a grid.
 	display: grid;
-    grid-template-columns: 1fr var(--cm-edit-button-size);
+	grid-template-columns: 1fr var(--cm-edit-button-size);
 
 	align-items: center;
 	gap: var(--size-4-2);

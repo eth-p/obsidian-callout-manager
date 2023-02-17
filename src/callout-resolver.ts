@@ -3,6 +3,7 @@ import { RGB } from 'color-convert/conversions';
 import { Callout, CalloutID } from '../api';
 
 import { IsolatedCalloutPreview, createIsolatedCalloutPreview } from './callout-preview';
+import { parseColorRGB } from './util/color-parse';
 
 /**
  * A class that fetches style information for callouts.
@@ -121,11 +122,5 @@ export class CalloutResolver {
  * @returns The callout's color, or null if not valid.
  */
 export function getColorFromCallout(callout: Callout): RGB | null {
-	const components = callout.color.split(',').map((s) => parseInt(s.trim(), 10)) as RGB;
-	const valid = components.length === 3 && components.find((v) => v < 0 || v > 255) === undefined;
-	if (!valid) {
-		return null;
-	}
-
-	return components;
+	return parseColorRGB(`rgb(${callout.color})`);
 }

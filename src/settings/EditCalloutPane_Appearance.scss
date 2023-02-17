@@ -1,10 +1,19 @@
 .callout-manager-edit-callout-section--appearance {
+	.setting-item {
+		border-top: none;
+		padding-top: 0.375em;
+	}
+
+	.setting-item:has(+ .setting-item) {
+		padding-bottom: 0.375em;
+	}
+
+	.setting-item + .setting-item {
+	}
 }
 
 .callout-manager-edit-callout--setting-cleared {
-	
 }
-
 
 // The preview showing the complex callout setting JSON.
 .callout-manager-edit-callout--complex-json pre {
