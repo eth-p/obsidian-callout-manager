@@ -1,0 +1,19 @@
+{
+	"name": "esbuild-plugin-cssints",
+	"private": "true",
+	"author": "eth-p",
+	"main": "",
+	"license": "MIT",
+	"type": "module",
+	"types": "./tag.d.ts",
+	"exports": {
+		"import": "./esbuild-plugin-cssints.mjs",
+		"types": "./tag.d.ts"
+	},
+	"peerDependencies": {
+		"typescript": ">=4",
+		"sass": "^1.58.3",
+		"sorcery": "^0.11.0",
+		"source-map": "^0.7.4"
+	}
+}

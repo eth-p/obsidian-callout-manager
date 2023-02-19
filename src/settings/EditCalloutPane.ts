@@ -99,3 +99,27 @@ export class EditCalloutPane extends CMSettingPane {
 		return this.previewSection.changeSettings(settings);
 	}
 }
+
+declare const STYLES: `
+	// Sections of the pane.
+	.callout-manager-edit-callout-section {
+		border-top: 1px solid var(--background-modifier-border);
+		padding-top: var(--size-4-3);
+		padding-bottom: var(--size-4-6);
+	}
+
+	.callout-manager-edit-callout-section h2 {
+		margin-bottom: 0.3em;
+		& + p {
+			margin-top: 0;
+		}
+	}
+
+	// Delete icon.
+	.callout-manager-edit-callout-delete-button {
+		color: var(--text-error);
+		&:hover {
+			color: var(--text-error);
+		}
+	}
+`;

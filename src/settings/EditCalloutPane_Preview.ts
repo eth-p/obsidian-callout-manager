@@ -119,7 +119,7 @@ export class EditCalloutPanePreview {
 	 * @param settings The settings to use.
 	 */
 	public async changeSettings(settings: CalloutSettings): Promise<void> {
-		const {calloutEl, customStyleEl, providedStyleEls} = this.preview;
+		const { calloutEl, customStyleEl, providedStyleEls } = this.preview;
 		const styles = calloutSettingsToCSS(this.calloutId, settings, currentCalloutEnvironment(this.plugin.app));
 		customStyleEl.textContent = styles;
 
@@ -131,11 +131,11 @@ export class EditCalloutPanePreview {
 
 		// Remove the preview styles added by callout manager.
 		// Now that we changed the settings, having the old styles would lead to inconsistency.
-		providedStyleEls.forEach(el => {
+		providedStyleEls.forEach((el) => {
 			if (el.getAttribute('data-inject-id') === 'callout-settings') {
 				el.remove();
 			}
-		})
+		});
 	}
 
 	/**
@@ -150,3 +150,30 @@ export class EditCalloutPanePreview {
 		}
 	}
 }
+
+declare const STYLES: `
+	// Ensure the preview takes a certain height.
+	.callout-manager-edit-callout-preview {
+		padding-bottom: var(--size-4-8);
+		min-height: 14em;
+
+		body.is-mobile & {
+			min-height: 35vh;
+		}
+	}
+
+	// The text box that allows the preview to be changed.
+	.callout-manager-preview-editor {
+		resize: vertical;
+		width: 100%;
+		min-height: 6em;
+
+		margin-top: var(--size-4-3);
+
+		// Try to be as transparent as possible.
+		background: transparent;
+		font-size: var(--font-text-size);
+		font-family: var(--font-text);
+		line-height: var(--line-height-normal);
+	}
+`;

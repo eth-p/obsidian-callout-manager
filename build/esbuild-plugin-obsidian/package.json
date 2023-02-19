@@ -1,0 +1,10 @@
+{
+	"name": "esbuild-plugin-obsidian",
+	"private": "true",
+	"author": "eth-p",
+	"license": "MIT",
+	"type": "module",
+	"exports": {
+		"import": "./esbuild-plugin-obsidian.mjs"
+	}
+}

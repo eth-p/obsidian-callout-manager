@@ -360,3 +360,208 @@ type CMSettingPane_FRIEND<S = unknown> = {
 	suspendState: CMSettingPane<S>['suspendState'];
 	restoreState: CMSettingPane<S>['restoreState'];
 };
+
+declare const STYLES: `
+	// The setting tab container.
+	.mod-sidebar-layout .callout-manager-setting-tab.vertical-tab-content {
+		position: relative;
+		padding: 0 !important;
+		display: flex;
+		flex-direction: column;
+
+		// Prevent scrolling on the parent container so we can have a sticky header.
+		overflow-y: initial;
+
+		// Variables.
+		& {
+			// Set a margin that allows the controls to become padding if there's nothing inside them.
+			--cm-setting-tab-controls-margin: calc(var(--size-4-12) - (var(--size-4-2) - var(--size-4-1)));
+			body.is-phone & {
+				--cm-setting-tab-controls-margin: var(--size-4-2);
+			}
+		}
+	}
+
+	// The setting tab header.
+	.callout-manager-setting-tab-header {
+		display: flex;
+		align-items: center;
+
+		// Padding to mimic the sizing of the '.vertical-tab-content'
+		padding-top: var(--size-4-1);
+		padding-bottom: var(--size-4-1);
+		padding-right: var(--size-4-2);
+
+		// Bottom border to separate the header from the content.
+		border-bottom: 1px solid var(--background-modifier-border);
+
+		// Use the background of the sidebar.
+		background-color: var(--background-secondary);
+
+		body.is-phone & {
+			background-color: var(--background-primary);
+		}
+	}
+
+	// The setting tab nav within the header.
+	.callout-manager-setting-tab-nav {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		// Ensure the nav is at least as big as a button.
+		min-width: var(--size-4-12);
+		min-height: calc(var(--size-4-2) + var(--input-height));
+
+		// Override the button padding.
+		button {
+			padding: var(--size-4-1) var(--size-4-2);
+			box-shadow: none;
+		}
+
+		// Reduce padding for mobile.
+		body.is-mobile & {
+			padding: var(--size-4-2);
+		}
+
+		body.is-phone &,
+		body.is-phone & button {
+			height: 100%;
+			min-width: unset;
+		}
+	}
+
+	// The setting tab nav within the header.
+	.callout-manager-setting-tab-controls {
+		flex: 3 3;
+
+		display: flex;
+		align-items: center;
+		justify-content: end;
+		gap: var(--size-4-2);
+
+		padding-left: var(--cm-setting-tab-controls-margin);
+
+		// Make the real control elements transparent to the container.
+		> *:not(.modal-close-button) {
+			display: contents;
+
+			> input[type='text'] {
+				flex: 1 1 auto;
+			}
+		}
+	}
+
+	.callout-manager-setting-tab-controls .modal-close-button {
+		flex: 0 0 auto;
+
+		position: static;
+		left: unset;
+		top: 0;
+		right: 0;
+		bottom: 0;
+
+		body.is-phone & {
+			display: none;
+		}
+	}
+
+	// The setting tab title within the header.
+	.callout-manager-setting-tab-title {
+		flex: 1 1 auto;
+		flex-wrap: nowrap;
+
+		h2,
+		h3 {
+			margin: 0;
+			word-break: keep-all;
+		}
+
+		h3 {
+			font-size: var(--font-ui-small);
+		}
+
+		body:not(.is-phone) & h3 {
+			font-size: 0.8em;
+		}
+
+		body.is-phone & h2:has(+ h3) {
+			display: none;
+		}
+	}
+
+	// The scroll container for the setting tab.
+	.callout-manager-setting-tab-viewport {
+		flex: 1 2 auto;
+
+		// Enable scrolling.
+		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.callout-manager-setting-tab-content {
+		flex: 1 1 auto;
+
+		body:not(.is-phone) {
+			min-height: 100%;
+		}
+	}
+
+	// A centered box to help display help messages for empty searches.
+	.callout-manager-setting-centerbox {
+		width: 100%;
+		height: 100%;
+
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+	}
+
+	// Improve form UX.
+	.callout-manager-setting-tab {
+		// Make disabled buttons look disabled.
+		button[disabled] {
+			box-shadow: none;
+			background-color: var(--interactive-normal);
+
+			&:hover {
+				background-color: var(--interactive-normal);
+				cursor: not-allowed;
+			}
+		}
+
+		input[type='color'][disabled] {
+			cursor: not-allowed;
+		}
+
+		// Make invalid text boxes look invalid.
+		input:invalid:not(:placeholder-shown) {
+			border-color: var(--text-error);
+		}
+
+		// Improve color picker UX on mobile.
+		body.is-phone & input[type='color']::-webkit-color-swatch {
+			border-radius: var(--button-radius);
+			border: #f00 2px solid;
+			border: 1px solid var(--checkbox-border-color);
+		}
+	}
+
+	// Make clickable icons not too large on mobile.
+	.callout-manager-setting-tab-content .setting-item-control,
+	.callout-manager-setting-tab-controls {
+		body.is-phone & button.clickable-icon {
+			width: var(--button-height);
+		}
+	}
+
+	// Make clickable icons in setting panes more visible on mobile.
+	body.is-phone .callout-manager-setting-tab-content .setting-item-control button.clickable-icon {
+		border: 1px solid var(--checkbox-border-color);
+
+		&.callout-manager-setting-set {
+			// background-color: var(--background-modifier-border);
+		}
+	}
+`;

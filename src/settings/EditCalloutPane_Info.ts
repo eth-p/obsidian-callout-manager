@@ -11,7 +11,7 @@ export function renderInfo(app: App, callout: Callout, containerEl: HTMLElement)
 	const contentEl = frag.createDiv({ cls: 'callout-manager-edit-callout-section' });
 
 	contentEl.createEl('h2', { text: 'About this Callout' });
-	contentEl.createEl('div', {cls: 'callout-manager-edit-callout-section--info'}, (el) => {
+	contentEl.createEl('div', { cls: 'callout-manager-edit-callout-section--info' }, (el) => {
 		el.appendText('The ');
 		el.createSpan({ cls: 'callout-manager-edit-callout--callout-id', text: callout.id });
 		el.appendText(' callout');
@@ -72,8 +72,10 @@ function appendColorInfo(el: HTMLElement, callout: Callout): void {
 
 	// Valid color.
 	el.appendText('the color ');
-	el.createEl('code', { cls: 'callout-manager-edit-callout--callout-color', text: rgb.hex(calloutColor) }, (colorEl) =>
-		colorEl.style.setProperty('--resolved-callout-color', callout.color),
+	el.createEl(
+		'code',
+		{ cls: 'callout-manager-edit-callout--callout-color', text: rgb.hex(calloutColor) },
+		(colorEl) => colorEl.style.setProperty('--resolved-callout-color', callout.color),
 	);
 }
 
@@ -100,3 +102,27 @@ function appendSourceInfo(app: App, el: HTMLElement, source: CalloutSource): boo
 		}
 	}
 }
+
+declare const STYLES: `
+	// The info paragraph and list.
+	.callout-manager-edit-callout-section--info {
+		color: var(--text-muted);
+	}
+
+	.callout-manager-edit-callout--invalid-color {
+		color: var(--text-error);
+	}
+
+	.callout-manager-edit-callout--callout-color {
+		color: rgb(var(--resolved-callout-color));
+	}
+
+	.callout-manager-edit-callout--callout-id,
+	.callout-manager-edit-callout--callout-icon,
+	.callout-manager-edit-callout--callout-source {
+		color: var(--text-normal);
+	}
+
+	.callout-manager-edit-callout--callout-source-list {
+	}
+`;
