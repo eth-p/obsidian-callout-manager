@@ -16,6 +16,10 @@
 		"strictNullChecks": true,
 		"strict": true,
 		"stripInternal": true,
-		"noEmit": true
+		"noEmit": true,
+		"paths": {
+			"obsidian-callout-manager": ["./api/*"],
+			"&/*": ["./src/*"],
+		}
 	}
 }
