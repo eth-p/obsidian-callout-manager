@@ -46,13 +46,13 @@ export class EditCalloutPaneAppearance {
 		// Create the section container.
 		const frag = document.createDocumentFragment();
 		const sectionEl = (this.sectionEl = frag.createDiv({
-			cls: ['callout-manager-edit-callout-section'],
+			cls: ['calloutmanager-edit-callout-section'],
 		}));
 
 		sectionEl.createEl('h2', { text: 'Appearance' });
 
 		// Create the appearance panel.
-		this.containerEl = sectionEl.createDiv({ cls: 'callout-manager-edit-callout-section--appearance' });
+		this.containerEl = sectionEl.createDiv({ cls: 'calloutmanager-edit-callout-section--appearance' });
 		this.refresh();
 	}
 
@@ -314,7 +314,7 @@ const CATEGORIES: CategorizedCalloutSettingsHandlers = {
 					'To prevent unintentional changes to the configuration, you need to edit it manually.',
 			});
 
-			containerEl.createEl('code', { cls: 'callout-manager-edit-callout--complex-json' }, (el) => {
+			containerEl.createEl('code', { cls: 'calloutmanager-edit-callout--complex-json' }, (el) => {
 				el.createEl('pre', { text: complexJson });
 			});
 
@@ -325,7 +325,7 @@ const CATEGORIES: CategorizedCalloutSettingsHandlers = {
 			let resetButtonClicked = false;
 			const resetButton = new ButtonComponent(containerEl)
 				.setButtonText('Reset Callout')
-				.setClass('callout-manager-edit-callout--complex-reset')
+				.setClass('calloutmanager-edit-callout--complex-reset')
 				.setWarning()
 				.onClick(() => {
 					if (!resetButtonClicked) {
@@ -345,7 +345,7 @@ const CATEGORIES: CategorizedCalloutSettingsHandlers = {
 } as CategorizedCalloutSettingsHandlers;
 
 declare const STYLES: `
-	.callout-manager-edit-callout-section--appearance {
+	.calloutmanager-edit-callout-section--appearance {
 		.setting-item {
 			border-top: none;
 			padding-top: 0.375em;
@@ -363,11 +363,11 @@ declare const STYLES: `
 		}
 	}
 
-	.callout-manager-edit-callout--setting-cleared {
+	.calloutmanager-edit-callout--setting-cleared {
 	}
 
 	// The preview showing the complex callout setting JSON.
-	.callout-manager-edit-callout--complex-json pre {
+	.calloutmanager-edit-callout--complex-json pre {
 		border: rgba(var(--background-modifier-border)) 1px solid;
 		border-radius: var(--callout-radius);
 		padding: var(--size-4-2);
@@ -378,7 +378,7 @@ declare const STYLES: `
 	}
 
 	// The reset button.
-	.callout-manager-edit-callout--complex-reset {
+	.calloutmanager-edit-callout--complex-reset {
 		width: 100%;
 	}
 `;

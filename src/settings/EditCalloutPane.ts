@@ -77,7 +77,7 @@ export class EditCalloutPane extends UIPane {
 					this.nav.close();
 				})
 				.then(({ buttonEl }) =>
-					buttonEl.classList.add('clickable-icon', 'callout-manager-edit-callout-delete-button'),
+					buttonEl.classList.add('clickable-icon', 'calloutmanager-edit-callout-delete-button'),
 				);
 		}
 	}
@@ -103,13 +103,13 @@ export class EditCalloutPane extends UIPane {
 
 declare const STYLES: `
 	// Sections of the pane.
-	.callout-manager-edit-callout-section {
+	.calloutmanager-edit-callout-section {
 		border-top: 1px solid var(--background-modifier-border);
 		padding-top: var(--size-4-3);
 		padding-bottom: var(--size-4-6);
 	}
 
-	.callout-manager-edit-callout-section h2 {
+	.calloutmanager-edit-callout-section h2 {
 		margin-bottom: 0.3em;
 		& + p {
 			margin-top: 0;
@@ -117,7 +117,7 @@ declare const STYLES: `
 	}
 
 	// Delete icon.
-	.callout-manager-edit-callout-delete-button {
+	.calloutmanager-edit-callout-delete-button {
 		color: var(--text-error);
 		&:hover {
 			color: var(--text-error);

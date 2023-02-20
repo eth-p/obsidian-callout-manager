@@ -199,14 +199,14 @@ export class ManageCalloutsPane extends UIPane {
 		this.previewCache = [];
 		for (const callout of this.plugin.callouts.values()) {
 			const calloutContainerEl = document.createElement('div');
-			calloutContainerEl.classList.add('callout-manager-preview-container');
+			calloutContainerEl.classList.add('calloutmanager-preview-container');
 			calloutContainerEl.setAttribute('data-callout-manager-callout', callout.id);
 
 			// Add the preview.
 			this.previewCache.push(createPreview(callout, calloutContainerEl));
 
 			// Add the edit button to the container.
-			calloutContainerEl.classList.add('callout-manager-preview-container-with-button');
+			calloutContainerEl.classList.add('calloutmanager-preview-container-with-button');
 
 			const editButton = calloutContainerEl.createEl('button');
 			editButton.appendChild(editButtonContent.cloneNode(true));
@@ -310,8 +310,8 @@ function comparePreviewByColor(a: CalloutForSearch, b: CalloutForSearch): number
 function createEmptySearchResultDiv(): { searchErrorDiv: HTMLElement; searchErrorQuery: HTMLElement } {
 	let searchErrorQuery!: HTMLElement;
 	const searchErrorDiv = document.createElement('div');
-	searchErrorDiv.className = 'callout-manager-setting-centerbox';
-	const contentEl = searchErrorDiv.createDiv({ cls: 'callout-manager-search-error' });
+	searchErrorDiv.className = 'calloutmanager-setting-centerbox';
+	const contentEl = searchErrorDiv.createDiv({ cls: 'calloutmanager-search-error' });
 
 	// Title.
 	contentEl.createEl('h2', { text: 'No callouts found.' });
@@ -324,7 +324,7 @@ function createEmptySearchResultDiv(): { searchErrorDiv: HTMLElement; searchErro
 	});
 
 	// Suggestions.
-	contentEl.createDiv({ cls: 'callout-manager-search-error-suggestions' }, (el) => {
+	contentEl.createDiv({ cls: 'calloutmanager-search-error-suggestions' }, (el) => {
 		el.createDiv({ text: 'Try searching:' });
 		el.createEl('ul', undefined, (el) => {
 			el.createEl('li', { text: 'By name: ' }, (el) => {
@@ -356,7 +356,7 @@ function createEmptySearchResultDiv(): { searchErrorDiv: HTMLElement; searchErro
 // ---------------------------------------------------------------------------------------------------------------------
 
 declare const STYLES: `
-	.callout-manager-search-error {
+	.calloutmanager-search-error {
 		width: 60%;
 
 		body.is-phone & {
@@ -369,11 +369,11 @@ declare const STYLES: `
 		}
 	}
 
-	.callout-manager-search-error-suggestions {
+	.calloutmanager-search-error-suggestions {
 		color: var(--text-muted);
 	}
 
-	.callout-manager-preview-container-with-button {
+	.calloutmanager-preview-container-with-button {
 		--cm-edit-button-size: calc(var(--input-height) + 2 * var(--size-4-3));
 		body.is-phone & {
 			--cm-edit-button-size: var(--input-height);

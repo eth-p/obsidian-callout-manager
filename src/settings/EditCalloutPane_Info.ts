@@ -7,12 +7,12 @@ import { toHexRGB } from '&color';
 
 export function renderInfo(app: App, callout: Callout, containerEl: HTMLElement): void {
 	const frag = document.createDocumentFragment();
-	const contentEl = frag.createDiv({ cls: 'callout-manager-edit-callout-section' });
+	const contentEl = frag.createDiv({ cls: 'calloutmanager-edit-callout-section' });
 
 	contentEl.createEl('h2', { text: 'About this Callout' });
-	contentEl.createEl('div', { cls: 'callout-manager-edit-callout-section--info' }, (el) => {
+	contentEl.createEl('div', { cls: 'calloutmanager-edit-callout-section--info' }, (el) => {
 		el.appendText('The ');
-		el.createSpan({ cls: 'callout-manager-edit-callout--callout-id', text: callout.id });
+		el.createSpan({ cls: 'calloutmanager-edit-callout--callout-id', text: callout.id });
 		el.appendText(' callout');
 
 		// Color information.
@@ -37,7 +37,7 @@ export function renderInfo(app: App, callout: Callout, containerEl: HTMLElement)
 		}
 
 		el.appendText('. The callout comes from:');
-		const sources = el.createEl('ul', { cls: 'callout-manager-edit-callout--callout-source-list' });
+		const sources = el.createEl('ul', { cls: 'calloutmanager-edit-callout--callout-source-list' });
 		for (const source of callout.sources) {
 			const itemEl = sources.createEl('li');
 			itemEl.appendText('The ');
@@ -52,7 +52,7 @@ export function renderInfo(app: App, callout: Callout, containerEl: HTMLElement)
 
 function appendIconInfo(el: HTMLElement, callout: Callout): void {
 	el.appendText('is using the icon ');
-	el.createEl('code', { cls: 'callout-manager-edit-callout--callout-icon', text: callout.icon });
+	el.createEl('code', { cls: 'calloutmanager-edit-callout--callout-icon', text: callout.icon });
 }
 
 function appendColorInfo(el: HTMLElement, callout: Callout): void {
@@ -62,7 +62,7 @@ function appendColorInfo(el: HTMLElement, callout: Callout): void {
 	if (calloutColor == null) {
 		el.appendText('an invalid color (');
 		el.createEl('code', {
-			cls: 'callout-manager-edit-callout--color-invalid',
+			cls: 'calloutmanager-edit-callout--color-invalid',
 			text: callout.color.trim(),
 		});
 		el.appendText(')');
@@ -73,7 +73,7 @@ function appendColorInfo(el: HTMLElement, callout: Callout): void {
 	el.appendText('the color ');
 	el.createEl(
 		'code',
-		{ cls: 'callout-manager-edit-callout--callout-color', text: toHexRGB(calloutColor) },
+		{ cls: 'calloutmanager-edit-callout--callout-color', text: toHexRGB(calloutColor) },
 		(colorEl) => colorEl.style.setProperty('--resolved-callout-color', callout.color),
 	);
 }
@@ -89,14 +89,14 @@ function appendSourceInfo(app: App, el: HTMLElement, source: CalloutSource): boo
 		case 'snippet':
 			el.appendText('CSS snippet ');
 			el.createEl('code', {
-				cls: 'callout-manager-edit-callout--callout-source',
+				cls: 'calloutmanager-edit-callout--callout-source',
 				text: `${source.snippet}.css`,
 			});
 			return true;
 		case 'theme': {
 			el.appendText('theme ');
 			const themeName = getThemeManifest(app, source.theme)?.name ?? source.theme;
-			el.createSpan({ cls: 'callout-manager-edit-callout--callout-source', text: themeName });
+			el.createSpan({ cls: 'calloutmanager-edit-callout--callout-source', text: themeName });
 			return true;
 		}
 	}
@@ -104,24 +104,24 @@ function appendSourceInfo(app: App, el: HTMLElement, source: CalloutSource): boo
 
 declare const STYLES: `
 	// The info paragraph and list.
-	.callout-manager-edit-callout-section--info {
+	.calloutmanager-edit-callout-section--info {
 		color: var(--text-muted);
 	}
 
-	.callout-manager-edit-callout--invalid-color {
+	.calloutmanager-edit-callout--invalid-color {
 		color: var(--text-error);
 	}
 
-	.callout-manager-edit-callout--callout-color {
+	.calloutmanager-edit-callout--callout-color {
 		color: rgb(var(--resolved-callout-color));
 	}
 
-	.callout-manager-edit-callout--callout-id,
-	.callout-manager-edit-callout--callout-icon,
-	.callout-manager-edit-callout--callout-source {
+	.calloutmanager-edit-callout--callout-id,
+	.calloutmanager-edit-callout--callout-icon,
+	.calloutmanager-edit-callout--callout-source {
 		color: var(--text-normal);
 	}
 
-	.callout-manager-edit-callout--callout-source-list {
+	.calloutmanager-edit-callout--callout-source-list {
 	}
 `;

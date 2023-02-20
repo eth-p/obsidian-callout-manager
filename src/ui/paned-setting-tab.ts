@@ -47,16 +47,16 @@ export class UISettingTab extends PluginSettingTab {
 
 		// Clear the container and create the elements.
 		containerEl.empty();
-		containerEl.classList.add('callout-manager-setting-tab');
+		containerEl.classList.add('calloutmanager-setting-tab');
 
-		const headerEl = containerEl.createDiv({ cls: 'callout-manager-setting-tab-header' });
-		layers.navEl = headerEl.createDiv({ cls: 'callout-manager-setting-tab-nav' });
-		layers.titleEl = headerEl.createDiv({ cls: 'callout-manager-setting-tab-title' });
+		const headerEl = containerEl.createDiv({ cls: 'calloutmanager-setting-tab-header' });
+		layers.navEl = headerEl.createDiv({ cls: 'calloutmanager-setting-tab-nav' });
+		layers.titleEl = headerEl.createDiv({ cls: 'calloutmanager-setting-tab-title' });
 
-		const controlsEl = headerEl.createDiv({ cls: 'callout-manager-setting-tab-controls' });
+		const controlsEl = headerEl.createDiv({ cls: 'calloutmanager-setting-tab-controls' });
 		layers.controlsEl = controlsEl.createDiv();
-		layers.scrollEl = containerEl.createDiv({ cls: 'callout-manager-setting-tab-viewport vertical-tab-content' });
-		layers.containerEl = layers.scrollEl.createDiv({ cls: 'callout-manager-setting-tab-content' });
+		layers.scrollEl = containerEl.createDiv({ cls: 'calloutmanager-setting-tab-viewport vertical-tab-content' });
+		layers.containerEl = layers.scrollEl.createDiv({ cls: 'calloutmanager-setting-tab-content' });
 
 		// Create a close button, since the native one is covered.
 		controlsEl.createDiv({ cls: 'modal-close-button' }, (closeButtonEl) => {
@@ -82,7 +82,7 @@ export class UISettingTab extends PluginSettingTab {
 
 declare const STYLES: `
 	// The setting tab container.
-	.mod-sidebar-layout .callout-manager-setting-tab.vertical-tab-content {
+	.mod-sidebar-layout .calloutmanager-setting-tab.vertical-tab-content {
 		position: relative;
 		padding: 0 !important;
 		display: flex;
@@ -102,7 +102,7 @@ declare const STYLES: `
 	}
 
 	// The setting tab header.
-	.callout-manager-setting-tab-header {
+	.calloutmanager-setting-tab-header {
 		display: flex;
 		align-items: center;
 
@@ -123,7 +123,7 @@ declare const STYLES: `
 	}
 
 	// The setting tab nav within the header.
-	.callout-manager-setting-tab-nav {
+	.calloutmanager-setting-tab-nav {
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -151,7 +151,7 @@ declare const STYLES: `
 	}
 
 	// The setting tab nav within the header.
-	.callout-manager-setting-tab-controls {
+	.calloutmanager-setting-tab-controls {
 		flex: 3 3;
 
 		display: flex;
@@ -171,7 +171,7 @@ declare const STYLES: `
 		}
 	}
 
-	.callout-manager-setting-tab-controls .modal-close-button {
+	.calloutmanager-setting-tab-controls .modal-close-button {
 		flex: 0 0 auto;
 
 		position: static;
@@ -186,7 +186,7 @@ declare const STYLES: `
 	}
 
 	// The setting tab title within the header.
-	.callout-manager-setting-tab-title {
+	.calloutmanager-setting-tab-title {
 		flex: 1 1 auto;
 		flex-wrap: nowrap;
 
@@ -210,7 +210,7 @@ declare const STYLES: `
 	}
 
 	// The scroll container for the setting tab.
-	.callout-manager-setting-tab-viewport {
+	.calloutmanager-setting-tab-viewport {
 		flex: 1 2 auto;
 
 		// Enable scrolling.
@@ -218,7 +218,7 @@ declare const STYLES: `
 		-webkit-overflow-scrolling: touch;
 	}
 
-	.callout-manager-setting-tab-content {
+	.calloutmanager-setting-tab-content {
 		flex: 1 1 auto;
 
 		body:not(.is-phone) {
@@ -227,7 +227,7 @@ declare const STYLES: `
 	}
 
 	// A centered box to help display help messages for empty searches.
-	.callout-manager-setting-centerbox {
+	.calloutmanager-setting-centerbox {
 		width: 100%;
 		height: 100%;
 
@@ -238,7 +238,7 @@ declare const STYLES: `
 	}
 
 	// Improve form UX.
-	.callout-manager-setting-tab {
+	.calloutmanager-setting-tab {
 		// Make disabled buttons look disabled.
 		button[disabled] {
 			box-shadow: none;
@@ -268,18 +268,18 @@ declare const STYLES: `
 	}
 
 	// Make clickable icons not too large on mobile.
-	.callout-manager-setting-tab-content .setting-item-control,
-	.callout-manager-setting-tab-controls {
+	.calloutmanager-setting-tab-content .setting-item-control,
+	.calloutmanager-setting-tab-controls {
 		body.is-phone & button.clickable-icon {
 			width: var(--button-height);
 		}
 	}
 
 	// Make clickable icons in setting panes more visible on mobile.
-	body.is-phone .callout-manager-setting-tab-content .setting-item-control button.clickable-icon {
+	body.is-phone .calloutmanager-setting-tab-content .setting-item-control button.clickable-icon {
 		border: 1px solid var(--checkbox-border-color);
 
-		&.callout-manager-setting-set {
+		&.calloutmanager-setting-set {
 			// background-color: var(--background-modifier-border);
 		}
 	}

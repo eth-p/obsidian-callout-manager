@@ -50,7 +50,7 @@ export class CalloutPreviewComponent extends Component {
 		const frag = document.createDocumentFragment();
 
 		// Build the callout.
-		const calloutEl = (this.calloutEl = frag.createDiv({ cls: ['callout', 'callout-manager-preview'] }));
+		const calloutEl = (this.calloutEl = frag.createDiv({ cls: ['callout', 'calloutmanager-preview'] }));
 		const titleElContainer = calloutEl.createDiv({ cls: 'callout-title' });
 		this.iconEl = titleElContainer.createDiv({ cls: 'callout-icon' });
 		const titleEl = (this.titleEl = titleElContainer.createDiv({ cls: 'callout-title-inner' }));
@@ -379,12 +379,12 @@ function createLiveViewContainer(viewContentEl: HTMLDivElement): HTMLDivElement 
 declare const STYLES: `
 	// Reset the blend mode of the preview.
 	// The rendering of the callouts will be broken unless this is reset.
-	.callout.callout-manager-preview {
+	.callout.calloutmanager-preview {
 		mix-blend-mode: unset !important;
 		margin: 0 !important;
 	}
 
-	.callout-manager-preview-container {
+	.calloutmanager-preview-container {
 		margin-top: 0.5em;
 		margin-bottom: 0.5em;
 	}
@@ -422,7 +422,7 @@ const SHADOW_DOM_RESET_STYLES = `
 /* Override margin on callout to keep the preview as small as possible. */
 .markdown-preview-section > div > .callout,
 .cm-callout > .callout,
-.callout-manager-preview.callout {
+.calloutmanager-preview.callout {
 	margin: 0 !important;
 }
 

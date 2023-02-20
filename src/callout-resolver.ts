@@ -1,6 +1,7 @@
 import { getCurrentColorScheme } from 'obsidian-extra';
 
 import { RGB, parseColorRGB } from '&color';
+
 import { IsolatedCalloutPreviewComponent } from '&ui/component/callout-preview';
 
 import { Callout, CalloutID } from '../api';
@@ -15,7 +16,7 @@ export class CalloutResolver {
 
 	public constructor() {
 		this.hostElement = document.body.createDiv({
-			cls: 'callout-manager-callout-resolver',
+			cls: 'calloutmanager-callout-resolver',
 		});
 
 		this.hostElement.style.setProperty('display', 'none', 'important');
@@ -97,3 +98,9 @@ export class CalloutResolver {
 export function getColorFromCallout(callout: Callout): RGB | null {
 	return parseColorRGB(`rgb(${callout.color})`);
 }
+
+declare const STYLES: `
+	.calloutmanager-callout-resolver {
+		display: none !important;
+	}
+`;

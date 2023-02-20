@@ -32,7 +32,7 @@ export class EditCalloutPanePreview {
 		// Create the callout preview.
 		const frag = document.createDocumentFragment();
 		this.sectionEl = frag.createDiv({
-			cls: ['callout-manager-preview-container', 'callout-manager-edit-callout-preview'],
+			cls: ['calloutmanager-preview-container', 'callout-manager-edit-callout-preview'],
 		});
 
 		this.preview = new IsolatedCalloutPreviewComponent(this.sectionEl, {
@@ -69,7 +69,7 @@ export class EditCalloutPanePreview {
 				.then((c) => {
 					const inputEl = (this.previewEditorEl = c.inputEl);
 					inputEl.style.setProperty('height', `${height}px`);
-					inputEl.classList.add('callout-manager-preview-editor');
+					inputEl.classList.add('calloutmanager-preview-editor');
 					inputEl.focus();
 					inputEl.addEventListener('blur', () => {
 						const value = c.getValue();
@@ -152,7 +152,7 @@ export class EditCalloutPanePreview {
 
 declare const STYLES: `
 	// Ensure the preview takes a certain height.
-	.callout-manager-edit-callout-preview {
+	.calloutmanager-edit-callout-preview {
 		padding-bottom: var(--size-4-8);
 		min-height: 14em;
 
@@ -162,7 +162,7 @@ declare const STYLES: `
 	}
 
 	// The text box that allows the preview to be changed.
-	.callout-manager-preview-editor {
+	.calloutmanager-preview-editor {
 		resize: vertical;
 		width: 100%;
 		min-height: 6em;
