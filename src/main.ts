@@ -1,6 +1,8 @@
 import { Plugin } from 'obsidian';
 import { CustomStyleSheet, createCustomStyleSheet } from 'obsidian-extra';
 
+import { UISettingTab } from '&ui/paned-setting-tab';
+
 import type { CalloutID, CalloutManager } from '../api';
 
 import { CalloutManagerAPI_V1 } from './api-v1';
@@ -10,10 +12,9 @@ import { CalloutResolver } from './callout-resolver';
 import { calloutSettingsToCSS, currentCalloutEnvironment } from './callout-settings';
 import { getCalloutsFromCSS } from './css-parser';
 import StylesheetWatcher, { ObsidianStylesheet, SnippetStylesheet, ThemeStylesheet } from './css-watcher';
+import { ManageCalloutsPane } from './panes/manage-callouts-pane';
+import { ManagePluginPane } from './panes/manage-plugin-pane';
 import Settings, { CalloutSettings, defaultSettings, mergeSettings } from './settings';
-import { CMSettingTab } from './settings/CMSettingTab';
-import { ManageCalloutsPane } from './settings/ManageCalloutsPane';
-import { ManagePluginPane } from './settings/ManagePluginPane';
 
 export default class CalloutManagerPlugin extends Plugin {
 	public settings!: Settings;
@@ -24,7 +25,7 @@ export default class CalloutManagerPlugin extends Plugin {
 	public callouts!: CalloutCollection;
 	// private removeStyles: CleanupFunction;
 
-	public settingTab!: CMSettingTab;
+	public settingTab!: UISettingTab;
 
 	/** @override */
 	public async onload() {
@@ -82,7 +83,7 @@ export default class CalloutManagerPlugin extends Plugin {
 		);
 
 		// Register setting tab.
-		this.settingTab = new CMSettingTab(this, () => new ManagePluginPane(this));
+		this.settingTab = new UISettingTab(this, () => new ManagePluginPane(this));
 		this.addSettingTab(this.settingTab);
 
 		// Register modal commands.

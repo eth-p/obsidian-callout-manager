@@ -1,17 +1,21 @@
 import { ButtonComponent, SearchResult, TextComponent, getIcon, prepareFuzzySearch } from 'obsidian';
 
+import { Callout } from '&callout';
+import { getColorFromCallout } from '&callout-resolver';
 import { toHSV } from '&color';
+import CalloutManagerPlugin from '&plugin';
+
 import { CalloutPreviewComponent } from '&ui/component/callout-preview';
+import { UIPane } from '&ui/pane';
 
-import { Callout } from '../../api';
-import { getColorFromCallout } from '../callout-resolver';
-import CalloutManagerPlugin from '../main';
+import { EditCalloutPane } from '../settings/EditCalloutPane';
 
-import { CMSettingPane } from './CMSettingTab';
-import { CreateCalloutPane } from './CreateCalloutPane';
-import { EditCalloutPane } from './EditCalloutPane';
+import { CreateCalloutPane } from './create-callout';
 
-export class ManageCalloutsPane extends CMSettingPane {
+/**
+ * The user interface pane for changing Callout Manager settings.
+ */
+export class ManageCalloutsPane extends UIPane {
 	public readonly title = { title: 'Callouts', subtitle: 'Manage' };
 	private readonly viewOnly: boolean;
 	private plugin: CalloutManagerPlugin;
@@ -346,6 +350,10 @@ function createEmptySearchResultDiv(): { searchErrorDiv: HTMLElement; searchErro
 
 	return { searchErrorDiv, searchErrorQuery };
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Styles:
+// ---------------------------------------------------------------------------------------------------------------------
 
 declare const STYLES: `
 	.callout-manager-search-error {

@@ -1,6 +1,6 @@
 import { Component, getIcon } from 'obsidian';
-import { CalloutID } from 'obsidian-callout-manager';
 
+import { CalloutID } from '&callout';
 import { RGB } from '&color';
 
 const NO_ATTACH = Symbol();

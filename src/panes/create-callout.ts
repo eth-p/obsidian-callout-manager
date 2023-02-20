@@ -1,11 +1,12 @@
 import { Setting } from 'obsidian';
 
-import CalloutManagerPlugin from '../main';
+import CalloutManagerPlugin from '&plugin';
 
-import { CMSettingPane } from './CMSettingTab';
-import { EditCalloutPane } from './EditCalloutPane';
+import { UIPane } from '&ui/pane';
 
-export class CreateCalloutPane extends CMSettingPane {
+import { EditCalloutPane } from '../settings/EditCalloutPane';
+
+export class CreateCalloutPane extends UIPane {
 	public readonly title = { title: 'Callouts', subtitle: 'New Callout' };
 	private readonly plugin: CalloutManagerPlugin;
 

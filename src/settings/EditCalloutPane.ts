@@ -1,17 +1,18 @@
 import { ButtonComponent } from 'obsidian';
 
-import { Callout, CalloutID } from '../../api';
-import CalloutManagerPlugin from '../main';
-import { CalloutSettings } from '../settings';
+import { Callout, CalloutID } from '&callout';
+import CalloutManagerPlugin from '&plugin';
+import { CalloutSettings } from '&plugin-settings';
 
-import { CMSettingPane } from './CMSettingTab';
+import { UIPane } from '&ui/pane';
+
 import { EditCalloutPaneAppearance } from './EditCalloutPane_Appearance';
 import { renderInfo } from './EditCalloutPane_Info';
 import { EditCalloutPanePreview } from './EditCalloutPane_Preview';
 
 const IMPOSSIBLE_CALLOUT_ID = '[not a real callout]';
 
-export class EditCalloutPane extends CMSettingPane {
+export class EditCalloutPane extends UIPane {
 	public readonly title;
 	private readonly viewOnly: boolean;
 	private readonly plugin: CalloutManagerPlugin;

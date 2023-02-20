@@ -1,11 +1,12 @@
 import { Component, MarkdownRenderer, TextAreaComponent, getIcon } from 'obsidian';
 import { getCurrentColorScheme } from 'obsidian-extra';
 
+import { Callout } from '&callout';
+import CalloutManagerPlugin from '&plugin';
+
 import { IsolatedCalloutPreviewComponent } from '&ui/component/callout-preview';
 
-import { Callout } from '../../api';
 import { calloutSettingsToCSS, currentCalloutEnvironment } from '../callout-settings';
-import CalloutManagerPlugin from '../main';
 import { CalloutSettings } from '../settings';
 
 /**

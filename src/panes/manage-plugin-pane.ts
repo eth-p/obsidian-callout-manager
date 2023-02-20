@@ -1,11 +1,12 @@
 import { ButtonComponent, Setting } from 'obsidian';
 
-import CalloutManagerPlugin from '../main';
+import CalloutManagerPlugin from '&plugin';
 
-import { CMSettingPane } from './CMSettingTab';
-import { ManageCalloutsPane } from './ManageCalloutsPane';
+import { UIPane } from '&ui/pane';
 
-export class ManagePluginPane extends CMSettingPane {
+import { ManageCalloutsPane } from './manage-callouts-pane';
+
+export class ManagePluginPane extends UIPane {
 	public readonly title = 'Callout Manager Settings';
 	private plugin: CalloutManagerPlugin;
 

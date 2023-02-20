@@ -1,10 +1,9 @@
 import { App } from 'obsidian';
 import { getThemeManifest } from 'obsidian-extra';
 
+import { Callout, CalloutSource } from '&callout';
+import { getColorFromCallout } from '&callout-resolver';
 import { toHexRGB } from '&color';
-
-import { Callout, CalloutSource } from '../../api';
-import { getColorFromCallout } from '../callout-resolver';
 
 export function renderInfo(app: App, callout: Callout, containerEl: HTMLElement): void {
 	const frag = document.createDocumentFragment();

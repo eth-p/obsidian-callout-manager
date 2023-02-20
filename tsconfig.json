@@ -19,9 +19,12 @@
 		"noEmit": true,
 		"paths": {
 			"obsidian-callout-manager": ["./api"],
-			"&plugin": ["./src/plugin"],
+			"&callout": ["./api/callout"],
+			"&callout-resolver": ["./src/callout-resolver"],
+			"&plugin": ["./src/main"],
+			"&plugin-settings": ["./src/settings"],
 			"&ui/*": ["./src/ui/*"],
-			"&color": ["./src/util/color"],
+			"&color": ["./src/util/color"]
 		}
 	}
 }

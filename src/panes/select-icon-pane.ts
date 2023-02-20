@@ -1,16 +1,19 @@
 import { SearchResult, TextComponent, getIconIds, prepareFuzzySearch } from 'obsidian';
 
-import CalloutManagerPlugin from '../../main';
-import { CMSettingPane, CMSettingPaneTitle } from '../CMSettingTab';
-import { IconPreviewComponent } from '../../ui/component/IconPreviewComponent';
+import CalloutManagerPlugin from '&plugin';
+
+import { IconPreviewComponent } from '&ui/component/icon-preview';
+import { UIPane, UIPaneTitle } from '&ui/pane';
 
 const recentIcons: Set<string> = new Set();
 
 /**
- * A setting pane for selecting an icon.
+ * A user interface pane for selecting an icon.
+ *
+ * This provides a searchable grid of icons that the user can scroll through.
  */
-export class SelectIconPane extends CMSettingPane<void> {
-	public readonly title: CMSettingPaneTitle;
+export class SelectIconPane extends UIPane<void> {
+	public readonly title: UIPaneTitle;
 	private plugin: CalloutManagerPlugin;
 
 	private searchQuery: string;
@@ -26,7 +29,7 @@ export class SelectIconPane extends CMSettingPane<void> {
 
 	public constructor(
 		plugin: CalloutManagerPlugin,
-		title: CMSettingPaneTitle,
+		title: UIPaneTitle,
 		options: { limit?: number; onChoose: (icon: string) => void },
 	) {
 		super();
@@ -79,7 +82,7 @@ export class SelectIconPane extends CMSettingPane<void> {
 	}
 
 	/**
-	 * Change the search query.
+	 * Changes the search query.
 	 * @param query The search query.
 	 */
 	public search(query: string): void {
@@ -96,7 +99,7 @@ export class SelectIconPane extends CMSettingPane<void> {
 	}
 
 	/**
-	 * Update the search results list.
+	 * Updatse the search results list.
 	 * @param search The search function.
 	 */
 	protected calculateSearchResults(search: (icon: IconForSearch) => SearchResult | null): void {
@@ -110,7 +113,7 @@ export class SelectIconPane extends CMSettingPane<void> {
 	}
 
 	/**
-	 * Reset the search results list to show a default list of suggested icons.
+	 * Resets the search results list to show a default list of suggested icons.
 	 */
 	protected resetSearchResults(): void {
 		const { allIcons, previewLimit, usedIcons } = this;
@@ -195,6 +198,10 @@ interface IconForSearch {
 	component: HTMLElement | null;
 	searchResult: SearchResult | null;
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Styles:
+// ---------------------------------------------------------------------------------------------------------------------
 
 declare const STYLES: `
 	:root {

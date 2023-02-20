@@ -1,19 +1,20 @@
 import { ButtonComponent, Setting } from 'obsidian';
 import { getCurrentColorScheme } from 'obsidian-extra';
 
-import { Callout } from '../../api';
-import { typeofCondition } from '../callout-settings';
-import CalloutManagerPlugin from '../main';
+import { Callout } from '&callout';
+import CalloutManagerPlugin from '&plugin';
 import {
 	CalloutSetting,
 	CalloutSettings,
 	CalloutSettingsChanges,
 	CalloutSettingsColorSchemeCondition,
-} from '../settings';
+} from '&plugin-settings';
 
-import { CMSettingPaneNavigation } from './CMSettingTab';
-import { CalloutColorSetting } from './setting/CalloutColorSetting';
-import { CalloutIconSetting } from './setting/CalloutIconSetting';
+import { UIPaneNavigation } from '&ui/pane';
+import { CalloutColorSetting } from '&ui/setting/callout-color';
+import { CalloutIconSetting } from '&ui/setting/callout-icon';
+
+import { typeofCondition } from '../callout-settings';
 
 /**
  * The appearance section of the edit callout pane.
@@ -21,7 +22,7 @@ import { CalloutIconSetting } from './setting/CalloutIconSetting';
 export class EditCalloutPaneAppearance {
 	private readonly plugin: CalloutManagerPlugin;
 	private readonly onChangeNotify: (settings: CalloutSettings) => void;
-	private readonly getNav: () => CMSettingPaneNavigation;
+	private readonly getNav: () => UIPaneNavigation;
 
 	private callout: Callout;
 	private categorized: CategorizedCalloutSettings;
@@ -33,7 +34,7 @@ export class EditCalloutPaneAppearance {
 		plugin: CalloutManagerPlugin,
 		callout: Callout,
 		initial: CalloutSettings,
-		getNav: () => CMSettingPaneNavigation,
+		getNav: () => UIPaneNavigation,
 		onChange: (settings: CalloutSettings) => void,
 	) {
 		this.plugin = plugin;
@@ -191,7 +192,7 @@ type CategorizedCalloutSettingsHandlers = {
 				containerEl: HTMLElement;
 				callout: Callout;
 				cat: Extract<CategorizedCalloutSettings, { type: key }>;
-				getNav: () => CMSettingPaneNavigation;
+				getNav: () => UIPaneNavigation;
 			},
 			update: (cat: CategorizedCalloutSettings) => void,
 		): void;

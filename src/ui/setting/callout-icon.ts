@@ -2,9 +2,9 @@ import { ButtonComponent, ExtraButtonComponent, Setting, getIcon } from 'obsidia
 
 import { Callout } from '../../../api';
 import CalloutManagerPlugin from '../../main';
-import { CMSettingPaneNavigation } from '../CMSettingTab';
-import { ResetButtonComponent } from '../../ui/component/ResetButtonComponent';
-import { SelectIconPane } from '../pane/SelectIconPane';
+import { ResetButtonComponent } from '../component/reset-button';
+import { SelectIconPane } from '../../panes/select-icon-pane';
+import { UIPaneNavigation } from '&ui/pane';
 
 /**
  * An Obsidian {@link Setting} for picking the icon of a callout.
@@ -22,7 +22,7 @@ export class CalloutIconSetting extends Setting {
 		containerEl: HTMLElement,
 		callout: Callout,
 		plugin: CalloutManagerPlugin,
-		getNav: () => CMSettingPaneNavigation,
+		getNav: () => UIPaneNavigation,
 	) {
 		super(containerEl);
 		this.onChanged = undefined;
