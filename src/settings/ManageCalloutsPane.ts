@@ -1,7 +1,6 @@
-import { rgb } from 'color-convert';
-import { HSV, RGB } from 'color-convert/conversions';
-
 import { ButtonComponent, SearchResult, TextComponent, getIcon, prepareFuzzySearch } from 'obsidian';
+
+import { toHSV } from '&color';
 
 import { Callout } from '../../api';
 import { CalloutPreview, createCalloutPreview } from '../callout-preview';
@@ -277,8 +276,7 @@ interface CalloutPreviewWithMetadata extends CalloutPreview<true> {
 	sources: Callout['sources'];
 	calloutContainerEl: HTMLElement;
 	colorValid: boolean;
-	rgb: RGB;
-	hsv: HSV;
+	colorHue: number;
 }
 
 function attachMetadata(
@@ -293,8 +291,7 @@ function attachMetadata(
 		calloutContainerEl,
 		properties: callout, // <-- The preview doesn't originally have properties as it wasn't created within the DOM.
 		colorValid: color != null,
-		rgb: color ?? [0, 0, 0],
-		hsv: color == null ? [0, 0, 0] : rgb.hsv(color),
+		colorHue: color == null ? 0 : toHSV(color).h,
 	};
 }
 
@@ -308,7 +305,7 @@ function attachMetadata(
 function comparePreviewByColor(a: CalloutPreviewWithMetadata, b: CalloutPreviewWithMetadata): number {
 	if (a.colorValid && !b.colorValid) return -1;
 	if (b.colorValid && !a.colorValid) return 1;
-	return a.hsv[0] - b.hsv[0];
+	return a.colorHue - b.colorHue;
 }
 
 /**

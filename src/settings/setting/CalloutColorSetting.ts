@@ -1,10 +1,9 @@
-import { RGB } from 'color-convert/conversions';
+import { ColorComponent, ExtraButtonComponent, Setting } from 'obsidian';
 
-import { ColorComponent, ExtraButtonComponent, RGB as ObsidianRGB, Setting } from 'obsidian';
+import { RGB, parseColorRGB } from '&color';
 
 import { Callout } from '../../../api';
 import { getColorFromCallout } from '../../callout-resolver';
-import { parseColorRGB } from '../../util/color-parse';
 import { ResetButtonComponent } from '../component/ResetButtonComponent';
 
 /**
@@ -27,7 +26,10 @@ export class CalloutColorSetting extends Setting {
 		// Create the setting archetype.
 		this.addColorPicker((picker) => {
 			this.colorComponent = picker;
-			picker.onChange(() => this.onChanged?.(this.getColor().join(', ')));
+			picker.onChange(() => {
+				const { r, g, b } = this.getColor();
+				this.onChanged?.(`${r}, ${g}, ${b}`);
+			});
 		});
 
 		this.components.push(
@@ -52,7 +54,7 @@ export class CalloutColorSetting extends Setting {
 			return this.setColor(undefined);
 		}
 
-		return this.setColor(parseColorRGB(`rgb(${color})`) ?? [0, 0, 0]);
+		return this.setColor(parseColorRGB(`rgb(${color})`) ?? { r: 0, g: 0, b: 0 });
 	}
 
 	/**
@@ -61,10 +63,10 @@ export class CalloutColorSetting extends Setting {
 	 * @param color The color or undefined to reset the color to default.
 	 * @returns `this`, for chaining.
 	 */
-	public setColor(color: RGB | ObsidianRGB | undefined): typeof this {
+	public setColor(color: RGB | undefined): typeof this {
 		const isDefault = (this.isDefault = color == null);
 		if (color == null) {
-			color = getColorFromCallout(this.callout) ?? [0, 0, 0];
+			color = getColorFromCallout(this.callout) ?? { r: 0, g: 0, b: 0 };
 		}
 
 		// Convert color to Obsidian RGB format.
@@ -80,8 +82,7 @@ export class CalloutColorSetting extends Setting {
 	}
 
 	public getColor(): RGB {
-		const { r, g, b } = this.colorComponent.getValueRgb();
-		return [r, g, b];
+		return this.colorComponent.getValueRgb();
 	}
 
 	public isDefaultColor(): boolean {

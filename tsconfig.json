@@ -20,6 +20,7 @@
 		"paths": {
 			"obsidian-callout-manager": ["./api/*"],
 			"&/*": ["./src/*"],
+			"&color": ["./src/util/color"],
 		}
 	}
 }

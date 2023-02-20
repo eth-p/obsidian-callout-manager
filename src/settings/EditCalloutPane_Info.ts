@@ -1,7 +1,7 @@
-import { rgb } from 'color-convert';
-
 import { App } from 'obsidian';
 import { getThemeManifest } from 'obsidian-extra';
+
+import { toHexRGB } from '&color';
 
 import { Callout, CalloutSource } from '../../api';
 import { getColorFromCallout } from '../callout-resolver';
@@ -74,7 +74,7 @@ function appendColorInfo(el: HTMLElement, callout: Callout): void {
 	el.appendText('the color ');
 	el.createEl(
 		'code',
-		{ cls: 'callout-manager-edit-callout--callout-color', text: rgb.hex(calloutColor) },
+		{ cls: 'callout-manager-edit-callout--callout-color', text: toHexRGB(calloutColor) },
 		(colorEl) => colorEl.style.setProperty('--resolved-callout-color', callout.color),
 	);
 }

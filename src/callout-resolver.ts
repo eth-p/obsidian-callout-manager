@@ -1,9 +1,8 @@
-import { RGB } from 'color-convert/conversions';
+import { RGB, parseColorRGB } from '&color';
 
 import { Callout, CalloutID } from '../api';
 
 import { IsolatedCalloutPreview, createIsolatedCalloutPreview } from './callout-preview';
-import { parseColorRGB } from './util/color-parse';
 
 /**
  * A class that fetches style information for callouts.

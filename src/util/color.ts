@@ -1,5 +1,114 @@
-import type { RGB } from 'color-convert/conversions';
+// ---------------------------------------------------------------------------------------------------------------------
+// Color Types:
+// ---------------------------------------------------------------------------------------------------------------------
 
+/**
+ * A color in 8-bit RGB color space.
+ * Each color component is between 0 and 255.
+ */
+export interface RGB {
+	r: number;
+	g: number;
+	b: number;
+}
+
+/**
+ * A color in 8-bit RGB color space with an alpha channel.
+ * The alpha component is between 0 and 255.
+ *
+ * @see RGB
+ */
+export interface RGBA extends RGB {
+	a: number;
+}
+
+/**
+ * A color in hue-saturation-value color space.
+ */
+export interface HSV {
+	/**
+	 * Hue.
+	 * Range: `0-359`
+	 */
+	h: number;
+
+	/**
+	 * Saturation.
+	 * Range: `0-100`
+	 */
+	s: number;
+
+	/**
+	 * Value.
+	 * Range: `0-100`
+	 */
+	v: number;
+}
+
+/**
+ * A color in hue-saturation-value color space with an alpha channel.
+ *
+ * @see HSV
+ */
+export interface HSVA extends HSV {
+	a: number;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Color Conversion:
+// ---------------------------------------------------------------------------------------------------------------------
+
+/**
+ * Converts a color to HSV(A).
+ *
+ * @param color The color to convert.
+ * @returns The color in HSV color space.
+ */
+export function toHSV(color: RGB | RGBA | HSV | HSVA): HSV | HSVA {
+	if ('h' in color && 's' in color && 'v' in color) return color;
+
+	const rFloat = color.r / 255;
+	const gFloat = color.g / 255;
+	const bFloat = color.b / 255;
+
+	const cmax = Math.max(rFloat, gFloat, bFloat);
+	const cmin = Math.min(rFloat, gFloat, bFloat);
+	const delta = cmax - cmin;
+
+	let h = 0;
+	if (cmax !== cmin) {
+		switch (cmax) {
+			case rFloat:
+				h = (60 * ((gFloat - bFloat) / delta) + 360) % 360;
+				break;
+			case gFloat:
+				h = (60 * ((bFloat - rFloat) / delta) + 120) % 360;
+				break;
+			case bFloat:
+				h = (60 * ((rFloat - gFloat) / delta) + 240) % 360;
+				break;
+		}
+	}
+
+	const s = cmax === 0 ? 0 : (delta / cmax) * 100;
+	const v = cmax * 100;
+
+	const hsv: HSV | HSVA = { h, s, v };
+	if ('a' in color) {
+		(hsv as HSVA).a = (((color as RGBA | HSVA).a as number) / 255) * 100;
+	}
+
+	return hsv;
+}
+
+export function toHexRGB(color: RGB | RGBA): string {
+	const parts = [color.r, color.g, color.b, ...('a' in color ? [color.a] : [])];
+	return parts.map((c) => c.toString(16).padStart(2, '0')).join('');
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Color Parsing:
+// ---------------------------------------------------------------------------------------------------------------------
 const REGEX_RGB = /^\s*rgba?\(\s*([\d.]+%?)\s*[, ]\s*([\d.]+%?)\s*[, ]\s*([\d.]+%?\s*)\)\s*$/i;
 const REGEX_RGBA = /^\s*rgba\(\s*([\d.]+%?)\s*,\s*([\d.]+%?)\s*,\s*([\d.]+%?)\s*,\s*([\d.]+%?)\s*\)\s*$/i;
 const REGEX_HEX = /^\s*#([\da-f]{3}|[\da-f]{4}|[\da-f]{6}|[\da-f]{8})\s*$/i;
@@ -11,7 +120,7 @@ const REGEX_HEX = /^\s*#([\da-f]{3}|[\da-f]{4}|[\da-f]{6}|[\da-f]{8})\s*$/i;
  * @param color The color string.
  * @returns The color RGB(A), or null if not valid.
  */
-export function parseColor(color: string): RGB | [...RGB, number] | null {
+export function parseColor(color: string): RGB | RGBA | null {
 	const trimmed = color.trim();
 	if (trimmed.startsWith('#')) {
 		return parseColorHex(color);
@@ -42,7 +151,11 @@ export function parseColorRGB(rgb: string): RGB | null {
 	}
 
 	// Parsed.
-	return rgbComponents as RGB;
+	return {
+		r: rgbComponents[0],
+		g: rgbComponents[1],
+		b: rgbComponents[2],
+	};
 }
 
 /**
@@ -51,10 +164,11 @@ export function parseColorRGB(rgb: string): RGB | null {
  * @param color The color string.
  * @returns The color RGBA, or null if not valid.
  */
-export function parseColorRGBA(rgba: string): [...RGB, number] | null {
-	const asRGB = parseColorRGB(rgba);
+export function parseColorRGBA(rgba: string): RGBA | null {
+	const asRGB = parseColorRGB(rgba) as RGBA | null;
 	if (asRGB != null) {
-		return [...asRGB, 255];
+		asRGB.a = 255;
+		return asRGB;
 	}
 
 	// As RGBA.
@@ -85,7 +199,12 @@ export function parseColorRGBA(rgba: string): [...RGB, number] | null {
 	}
 
 	// Parsed.
-	return allComponents as [number, number, number, number];
+	return {
+		r: allComponents[0],
+		g: allComponents[1],
+		b: allComponents[2],
+		a: allComponents[3],
+	};
 }
 
 /**
@@ -94,7 +213,7 @@ export function parseColorRGBA(rgba: string): [...RGB, number] | null {
  * @param color The color string.
  * @returns The color RGB(A), or null if not valid.
  */
-export function parseColorHex(hex: string): RGB | [...RGB, number] | null {
+export function parseColorHex(hex: string): RGB | RGBA | null {
 	const matches = REGEX_HEX.exec(hex);
 	if (matches === null) return null;
 
@@ -114,7 +233,18 @@ export function parseColorHex(hex: string): RGB | [...RGB, number] | null {
 		return null;
 	}
 
-	return hexComponents as RGB | [...RGB, number];
+	// Return RGB object.
+	const hexRGB: RGB | RGBA = {
+		r: hexComponents[0],
+		g: hexComponents[1],
+		b: hexComponents[2],
+	};
+
+	if (hexComponents.length > 3) {
+		(hexRGB as RGBA).a = hexComponents[3];
+	}
+
+	return hexRGB;
 }
 
 function rgbComponentStringsToNumber(components: [string, string, string]): [number, number, number] | null {
