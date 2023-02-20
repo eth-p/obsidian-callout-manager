@@ -2,7 +2,7 @@ import { SearchResult, TextComponent, getIconIds, prepareFuzzySearch } from 'obs
 
 import CalloutManagerPlugin from '../../main';
 import { CMSettingPane, CMSettingPaneTitle } from '../CMSettingTab';
-import { IconPreviewComponent } from '../component/IconPreviewComponent';
+import { IconPreviewComponent } from '../../ui/component/IconPreviewComponent';
 
 const recentIcons: Set<string> = new Set();
 

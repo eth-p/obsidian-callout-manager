@@ -4,7 +4,7 @@ import { RGB, parseColorRGB } from '&color';
 
 import { Callout } from '../../../api';
 import { getColorFromCallout } from '../../callout-resolver';
-import { ResetButtonComponent } from '../component/ResetButtonComponent';
+import { ResetButtonComponent } from '../../ui/component/ResetButtonComponent';
 
 /**
  * An Obsidian {@link Setting} for picking the color of a callout.

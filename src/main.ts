@@ -44,12 +44,12 @@ export default class CalloutManagerPlugin extends Plugin {
 		// We also register an event to ensure that it tracks any changes to the loaded styles.
 		this.calloutResolver = new CalloutResolver();
 		this.register(() => this.calloutResolver.unload());
-		this.registerEvent(this.app.workspace.on('css-change', () => this.calloutResolver.reloadStyles()));
 
 		// Create the callout collection.
 		// Use getCalloutProperties to resolve the callout's color and icon.
 		this.callouts = new CalloutCollection((id) => {
 			const { icon, color } = this.calloutResolver.getCalloutProperties(id);
+			console.debug('Resolved Callout:', id, { icon, color });
 			return {
 				id,
 				icon,
@@ -64,12 +64,11 @@ export default class CalloutManagerPlugin extends Plugin {
 		this.cssApplier = new StylesheetApplier(this, 'callout-settings');
 		this.cssApplier.reapply();
 		this.register(this.cssApplier.start());
-		this.regenerateCalloutSettingStyles();
-		this.registerEvent(
-			this.app.workspace.on('css-change', () => {
-				this.regenerateCalloutSettingStyles();
-			}),
-		);
+
+		this.applyStyles();
+		this.app.workspace.onLayoutReady(() => {
+			this.applyStyles();
+		});
 
 		// Create the stylesheet watcher.
 		// This will let us update the callout collection whenever any styles change.
@@ -79,9 +78,18 @@ export default class CalloutManagerPlugin extends Plugin {
 		this.cssWatcher.on('remove', this.removeCalloutSource.bind(this));
 		this.cssWatcher.on('checkComplete', () => this.maybeRefreshCalloutBuiltinsWithFallback());
 		this.app.workspace.onLayoutReady(() => {
-			this.calloutResolver.reloadStyles();
 			this.register(this.cssWatcher.watch());
 		});
+
+		// Register a listener for whenever the CSS changes.
+		//   Since the styles for a callout can change, we need to reload the styles in the resolver.
+		//   It's also a good idea to reapply our own styles, since the color scheme or theme could have changed.
+		this.registerEvent(
+			this.app.workspace.on('css-change', () => {
+				this.calloutResolver.reloadStyles();
+				this.applyStyles();
+			}),
+		);
 
 		// Register setting tab.
 		this.settingTab = new CMSettingTab(this, () => new ManagePluginPane(this));
@@ -208,15 +216,17 @@ export default class CalloutManagerPlugin extends Plugin {
 		this.saveSettings();
 
 		// Reapply.
-		this.regenerateCalloutSettingStyles();
+		this.applyStyles();
 		this.callouts.invalidate(id);
 	}
 
 	/**
+	 * Generates the stylesheet for the user's custom callout settings and applies it to the page and the callout
+	 * resolver's custom stylesheet.
 	 * Regenerates the CSS from the user's custom callout settings.
 	 * This will apply the custom CSS to the resolver and the document.
 	 */
-	public regenerateCalloutSettingStyles() {
+	public applyStyles() {
 		const env = currentCalloutEnvironment(this.app);
 
 		// Generate the CSS.
@@ -228,7 +238,7 @@ export default class CalloutManagerPlugin extends Plugin {
 		// Apply the CSS.
 		const stylesheet = css.join('\n\n');
 		this.cssApplier.textContent = stylesheet;
-		this.calloutResolver.reloadStyles();
+		this.calloutResolver.customStyleEl.textContent = stylesheet;
 	}
 
 	/**

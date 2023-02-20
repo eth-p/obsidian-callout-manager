@@ -105,7 +105,7 @@ export class ManagePluginPane extends CMSettingPane {
 						this.plugin.saveSettings();
 
 						// Regenerate the callout styles.
-						this.plugin.regenerateCalloutSettingStyles();
+						this.plugin.applyStyles();
 						btn.setButtonText('Reset').setDisabled(true);
 					});
 				}),
@@ -129,7 +129,7 @@ export class ManagePluginPane extends CMSettingPane {
 
 						// Regenerate the callout styles.
 						this.plugin.callouts.custom.clear();
-						this.plugin.regenerateCalloutSettingStyles();
+						this.plugin.applyStyles();
 
 						// Regenerate the cache.
 						this.plugin.refreshCalloutSources();

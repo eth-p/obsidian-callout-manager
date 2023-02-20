@@ -1,7 +1,9 @@
 import { Component, MarkdownRenderer, TextAreaComponent, getIcon } from 'obsidian';
+import { getCurrentColorScheme } from 'obsidian-extra';
+
+import { IsolatedCalloutPreviewComponent } from '&ui/component/callout-preview';
 
 import { Callout } from '../../api';
-import { IsolatedCalloutPreview, createIsolatedCalloutPreview } from '../callout-preview';
 import { calloutSettingsToCSS, currentCalloutEnvironment } from '../callout-settings';
 import CalloutManagerPlugin from '../main';
 import { CalloutSettings } from '../settings';
@@ -12,7 +14,7 @@ import { CalloutSettings } from '../settings';
  * This allows the preview text to be edited.
  */
 export class EditCalloutPanePreview {
-	public readonly preview: IsolatedCalloutPreview<false> & { contentEl: HTMLElement };
+	public readonly preview: IsolatedCalloutPreviewComponent;
 
 	private readonly plugin: CalloutManagerPlugin;
 	private readonly sectionEl: HTMLElement;
@@ -34,13 +36,15 @@ export class EditCalloutPanePreview {
 			cls: ['callout-manager-preview-container', 'callout-manager-edit-callout-preview'],
 		});
 
-		this.preview = createIsolatedCalloutPreview(this.sectionEl.createDiv(), callout.id, {
+		this.preview = new IsolatedCalloutPreviewComponent(this.sectionEl, {
+			id: callout.id,
 			title: callout.id,
-			overrideIcon: callout.icon, // Needed since we can't determine the icon until it's attached to the DOM.
-			contents: (containerEl) => {
+			icon: callout.icon,
+			colorScheme: getCurrentColorScheme(plugin.app),
+			content: (containerEl) => {
 				containerEl.createEl('p', { text: this.previewMarkdown });
 			},
-		}) as IsolatedCalloutPreview<false> & { contentEl: HTMLElement };
+		});
 
 		// Make the preview editable.
 		if (!viewOnly) {
@@ -49,7 +53,7 @@ export class EditCalloutPanePreview {
 	}
 
 	private makeEditable(): void {
-		const { contentEl } = this.preview;
+		const contentEl = this.preview.contentEl as HTMLElement;
 
 		// Add a click handler to change the preview.
 		this.previewEditorEl = null;
@@ -102,7 +106,7 @@ export class EditCalloutPanePreview {
 	 * @param markdown The markdown to render.
 	 */
 	public async changeContent(markdown: string): Promise<void> {
-		const { contentEl } = this.preview;
+		const contentEl = this.preview.contentEl as HTMLElement;
 		contentEl.empty();
 
 		try {
@@ -119,23 +123,18 @@ export class EditCalloutPanePreview {
 	 * @param settings The settings to use.
 	 */
 	public async changeSettings(settings: CalloutSettings): Promise<void> {
-		const { calloutEl, customStyleEl, providedStyleEls } = this.preview;
+		const { preview } = this;
 		const styles = calloutSettingsToCSS(this.calloutId, settings, currentCalloutEnvironment(this.plugin.app));
-		customStyleEl.textContent = styles;
+
+		// Update the custom stylesheet of the callout preview.
+		preview.customStyleEl.textContent = styles;
+		preview.resetStylePropertyOverrides();
 
 		this.calloutHasIconReady = false;
 
-		// Remove any overridden styles.
-		calloutEl.style.removeProperty('--callout-icon');
-		calloutEl.style.removeProperty('--callout-color');
-
 		// Remove the preview styles added by callout manager.
 		// Now that we changed the settings, having the old styles would lead to inconsistency.
-		providedStyleEls.forEach((el) => {
-			if (el.getAttribute('data-inject-id') === 'callout-settings') {
-				el.remove();
-			}
-		});
+		preview.removeStyles((el) => el.getAttribute('data-inject-id') === 'callout-settings');
 	}
 
 	/**

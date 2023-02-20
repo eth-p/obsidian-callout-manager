@@ -3,7 +3,7 @@ import { ButtonComponent, ExtraButtonComponent, Setting, getIcon } from 'obsidia
 import { Callout } from '../../../api';
 import CalloutManagerPlugin from '../../main';
 import { CMSettingPaneNavigation } from '../CMSettingTab';
-import { ResetButtonComponent } from '../component/ResetButtonComponent';
+import { ResetButtonComponent } from '../../ui/component/ResetButtonComponent';
 import { SelectIconPane } from '../pane/SelectIconPane';
 
 /**

@@ -1,16 +1,17 @@
+import { getCurrentColorScheme } from 'obsidian-extra';
+
 import { RGB, parseColorRGB } from '&color';
+import { IsolatedCalloutPreviewComponent } from '&ui/component/callout-preview';
 
 import { Callout, CalloutID } from '../api';
-
-import { IsolatedCalloutPreview, createIsolatedCalloutPreview } from './callout-preview';
 
 /**
  * A class that fetches style information for callouts.
  * This keeps a Shadow DOM within the page document and uses getComputedStyles to get CSS variables.
  */
 export class CalloutResolver {
-	private hostElement: HTMLElement;
-	private calloutPreview: IsolatedCalloutPreview<false>;
+	private readonly hostElement: HTMLElement;
+	private readonly calloutPreview: IsolatedCalloutPreviewComponent;
 
 	public constructor() {
 		this.hostElement = document.body.createDiv({
@@ -18,7 +19,13 @@ export class CalloutResolver {
 		});
 
 		this.hostElement.style.setProperty('display', 'none', 'important');
-		this.calloutPreview = createIsolatedCalloutPreview(this.hostElement.createDiv(), '');
+		this.calloutPreview = new IsolatedCalloutPreviewComponent(this.hostElement, {
+			id: '',
+			icon: '',
+			colorScheme: 'dark',
+		});
+
+		this.calloutPreview.resetStylePropertyOverrides();
 	}
 
 	/**
@@ -28,41 +35,10 @@ export class CalloutResolver {
 	 * Note: This will not reload the Obsidian app.css stylesheet.
 	 * @param styles The new style elements to use.
 	 */
-	public reloadStyles(styles?: HTMLStyleElement[]) {
-		const { providedStyleEls, customStyleEl } = this.calloutPreview;
-
-		// If no style elements were provided, fetch them form the document head.
-		if (styles === undefined) {
-			styles = [];
-			for (let node = window.document.head.firstElementChild; node != null; node = node.nextElementSibling) {
-				if (node.tagName === 'STYLE') {
-					styles.push(node as HTMLStyleElement);
-				}
-			}
-		}
-
-		// Replace the styles.
-		let i, end;
-		let lastNode = customStyleEl.previousSibling as HTMLElement;
-		for (i = 0, end = Math.min(styles.length, providedStyleEls.length); i < end; i++) {
-			const clone = styles[i].cloneNode(true) as HTMLStyleElement;
-			providedStyleEls[i].replaceWith(clone);
-			providedStyleEls[i] = clone;
-			lastNode = clone;
-		}
-
-		// Add styles that didn't have anywhere to go.
-		for (end = styles.length; i < end; i++) {
-			const clone = styles[i].cloneNode(true) as HTMLStyleElement;
-			lastNode.insertAdjacentElement('afterend', clone);
-			providedStyleEls.push(clone);
-		}
-
-		// Remove extra styles.
-		const toRemove = providedStyleEls.splice(i, providedStyleEls.length);
-		for (const node of toRemove) {
-			node.remove();
-		}
+	public reloadStyles(): void {
+		this.calloutPreview.setColorScheme(getCurrentColorScheme(app));
+		this.calloutPreview.updateStyles();
+		this.calloutPreview.removeStyles((el) => el.getAttribute('data-inject-id') === 'callout-settings');
 	}
 
 	/**
@@ -89,9 +65,7 @@ export class CalloutResolver {
 		//   We need to use the callback to create the full set of desired return properties because
 		//   window.getComputedStyle returns an object that will update itself automatically. The moment we
 		//   change the host element, all the styles we want from it will be removed.
-		const result = callback(window.getComputedStyle(calloutEl));
-
-		return result;
+		return callback(window.getComputedStyle(calloutEl));
 	}
 
 	/**

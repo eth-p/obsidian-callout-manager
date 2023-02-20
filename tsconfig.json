@@ -18,8 +18,8 @@
 		"stripInternal": true,
 		"noEmit": true,
 		"paths": {
-			"obsidian-callout-manager": ["./api/*"],
-			"&/*": ["./src/*"],
+			"obsidian-callout-manager": ["./api"],
+			"&ui/*": ["./src/ui/*"],
 			"&color": ["./src/util/color"],
 		}
 	}

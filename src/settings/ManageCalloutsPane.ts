@@ -1,9 +1,9 @@
 import { ButtonComponent, SearchResult, TextComponent, getIcon, prepareFuzzySearch } from 'obsidian';
 
 import { toHSV } from '&color';
+import { CalloutPreviewComponent } from '&ui/component/callout-preview';
 
 import { Callout } from '../../api';
-import { CalloutPreview, createCalloutPreview } from '../callout-preview';
 import { getColorFromCallout } from '../callout-resolver';
 import CalloutManagerPlugin from '../main';
 
@@ -17,8 +17,8 @@ export class ManageCalloutsPane extends CMSettingPane {
 	private plugin: CalloutManagerPlugin;
 
 	private searchQuery: string;
-	private searchFilter: null | ((callout: CalloutPreviewWithMetadata) => SearchResult | null);
-	private previewCache: CalloutPreviewWithMetadata[];
+	private searchFilter: null | ((callout: CalloutForSearch) => SearchResult | null);
+	private previewCache: CalloutForSearch[];
 
 	private searchErrorDiv: HTMLElement;
 	private searchErrorQuery!: HTMLElement;
@@ -71,13 +71,13 @@ export class ManageCalloutsPane extends CMSettingPane {
 		// Search `id:` -- Search by ID.
 		if (queryPrefix === 'id') {
 			const fuzzy = prepareFuzzySearch(query.toLowerCase());
-			return (callout) => fuzzy(callout.properties.id);
+			return (callout) => fuzzy(callout.id);
 		}
 
 		// Search `icon:` -- Search by icon.
 		if (queryPrefix === 'icon') {
 			const fuzzy = prepareFuzzySearch(query.toLowerCase());
-			return (callout) => fuzzy(callout.properties.icon.toLowerCase());
+			return (callout) => fuzzy(callout.icon.toLowerCase());
 		}
 
 		// Search `from:` -- Search by source.
@@ -143,14 +143,14 @@ export class ManageCalloutsPane extends CMSettingPane {
 	 * @param previews The previews to filter and sort.
 	 * @returns The filtered and sorted previews.
 	 */
-	protected filterAndSort(previews: CalloutPreviewWithMetadata[]): CalloutPreviewWithMetadata[] {
+	protected filterAndSort(previews: CalloutForSearch[]): CalloutForSearch[] {
 		const { searchFilter } = this;
 		if (searchFilter == null) {
 			return previews.sort(comparePreviewByColor);
 		}
 
 		// Filter out the previews that don't match the search query.
-		const filterMapped: Array<[CalloutPreviewWithMetadata, SearchResult]> = [];
+		const filterMapped: Array<[CalloutForSearch, SearchResult]> = [];
 		for (const preview of previews) {
 			const result = searchFilter(preview);
 			if (result != null) {
@@ -199,20 +199,7 @@ export class ManageCalloutsPane extends CMSettingPane {
 			calloutContainerEl.setAttribute('data-callout-manager-callout', callout.id);
 
 			// Add the preview.
-			this.previewCache.push(
-				attachMetadata(
-					callout,
-					calloutContainerEl,
-					createCalloutPreview(calloutContainerEl.createDiv(), callout.id, {
-						title: callout.id,
-
-						// Since we can't detect icons or colors without an attachment to the DOM, we need to
-						// provide the icon and color from the cache.
-						overrideIcon: callout.icon,
-						overrideColor: callout.color,
-					}),
-				),
-			);
+			this.previewCache.push(createPreview(callout, calloutContainerEl));
 
 			// Add the edit button to the container.
 			calloutContainerEl.classList.add('callout-manager-preview-container-with-button');
@@ -272,26 +259,31 @@ export class ManageCalloutsPane extends CMSettingPane {
 /**
  * A {@link CalloutPreview} with attached metadata to make it easier to filter and search.
  */
-interface CalloutPreviewWithMetadata extends CalloutPreview<true> {
+interface CalloutForSearch {
+	icon: string;
+	id: string;
 	sources: Callout['sources'];
 	calloutContainerEl: HTMLElement;
 	colorValid: boolean;
 	colorHue: number;
+	preview: CalloutPreviewComponent;
 }
 
-function attachMetadata(
-	callout: Callout,
-	calloutContainerEl: HTMLElement,
-	preview: CalloutPreview<false>,
-): CalloutPreviewWithMetadata {
+function createPreview(callout: Callout, calloutContainerEl: HTMLElement): CalloutForSearch {
+	const { icon, id } = callout;
 	const color = getColorFromCallout(callout);
 	return {
-		...preview,
 		sources: callout.sources,
+		icon,
+		id,
 		calloutContainerEl,
-		properties: callout, // <-- The preview doesn't originally have properties as it wasn't created within the DOM.
 		colorValid: color != null,
 		colorHue: color == null ? 0 : toHSV(color).h,
+		preview: new CalloutPreviewComponent(calloutContainerEl, {
+			id,
+			icon,
+			color: color ?? undefined,
+		}),
 	};
 }
 
@@ -302,7 +294,7 @@ function attachMetadata(
  * @param b The second preview.
  * @returns `-1` if the a has a lower hue, `0` if they are the same, or `1` if a has a higher hue.
  */
-function comparePreviewByColor(a: CalloutPreviewWithMetadata, b: CalloutPreviewWithMetadata): number {
+function comparePreviewByColor(a: CalloutForSearch, b: CalloutForSearch): number {
 	if (a.colorValid && !b.colorValid) return -1;
 	if (b.colorValid && !a.colorValid) return 1;
 	return a.colorHue - b.colorHue;
