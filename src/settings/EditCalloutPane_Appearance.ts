@@ -2,13 +2,13 @@ import { ButtonComponent, Setting } from 'obsidian';
 import { getCurrentColorScheme } from 'obsidian-extra';
 
 import { Callout } from '&callout';
-import CalloutManagerPlugin from '&plugin';
 import {
 	CalloutSetting,
 	CalloutSettings,
 	CalloutSettingsChanges,
 	CalloutSettingsColorSchemeCondition,
-} from '&plugin-settings';
+} from '&callout-settings';
+import CalloutManagerPlugin from '&plugin';
 
 import { UIPaneNavigation } from '&ui/pane';
 import { CalloutColorSetting } from '&ui/setting/callout-color';
@@ -145,7 +145,7 @@ function categorizeSettings(settings: CalloutSettings): CategorizedCalloutSettin
 		}
 
 		// Keep track of the changed color.
-		const appearanceCond = setting.condition.colorScheme;
+		const appearanceCond = (setting.condition as CalloutSettingsColorSchemeCondition).colorScheme;
 		if (appearanceColor[appearanceCond] === undefined) {
 			appearanceColor[appearanceCond] = setting.changes.color;
 		} else {

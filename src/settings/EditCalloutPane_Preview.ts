@@ -2,12 +2,10 @@ import { Component, MarkdownRenderer, TextAreaComponent, getIcon } from 'obsidia
 import { getCurrentColorScheme } from 'obsidian-extra';
 
 import { Callout } from '&callout';
+import { CalloutSettings, calloutSettingsToCSS, currentCalloutEnvironment } from '&callout-settings';
 import CalloutManagerPlugin from '&plugin';
 
 import { IsolatedCalloutPreviewComponent } from '&ui/component/callout-preview';
-
-import { calloutSettingsToCSS, currentCalloutEnvironment } from '../callout-settings';
-import { CalloutSettings } from '../settings';
 
 /**
  * A callout preview for the edit callout pane.

@@ -10,7 +10,7 @@ import { UIPane } from '&ui/pane';
 
 import { EditCalloutPane } from '../settings/EditCalloutPane';
 
-import { CreateCalloutPane } from './create-callout';
+import { CreateCalloutPane } from './create-callout-pane';
 
 /**
  * The user interface pane for changing Callout Manager settings.

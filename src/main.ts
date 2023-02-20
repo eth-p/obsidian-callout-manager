@@ -9,12 +9,12 @@ import { CalloutManagerAPI_V1 } from './api-v1';
 import { CalloutCollection } from './callout-collection';
 import builtinCallouts from './callout-fallback-obsidian.json';
 import { CalloutResolver } from './callout-resolver';
-import { calloutSettingsToCSS, currentCalloutEnvironment } from './callout-settings';
+import { CalloutSettings, calloutSettingsToCSS, currentCalloutEnvironment } from './callout-settings';
 import { getCalloutsFromCSS } from './css-parser';
 import StylesheetWatcher, { ObsidianStylesheet, SnippetStylesheet, ThemeStylesheet } from './css-watcher';
 import { ManageCalloutsPane } from './panes/manage-callouts-pane';
 import { ManagePluginPane } from './panes/manage-plugin-pane';
-import Settings, { CalloutSettings, defaultSettings, mergeSettings } from './settings';
+import Settings, { defaultSettings, mergeSettings } from './settings';
 
 export default class CalloutManagerPlugin extends Plugin {
 	public settings!: Settings;

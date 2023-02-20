@@ -1,9 +1,8 @@
 import { App } from 'obsidian';
 import { getCurrentColorScheme, getCurrentThemeID } from 'obsidian-extra';
+import { ThemeID } from 'obsidian-undocumented';
 
-import { CalloutID } from '../api';
-
-import { CalloutSettings, CalloutSettingsCondition, CalloutSettingsConditionType } from './settings';
+import { CalloutID } from '&callout';
 
 /**
  * Gets the current environment that callouts are under.
@@ -135,3 +134,68 @@ export function typeofCondition(condition: CalloutSettingsCondition): CalloutSet
 
 	throw new Error(`Unsupported condition: ${JSON.stringify(condition)}`);
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
+// DSL:
+// ---------------------------------------------------------------------------------------------------------------------
+
+/**
+ * A type of {@link CalloutSettingsCondition callout setting condition}.
+ */
+export type CalloutSettingsConditionType = 'theme' | 'colorScheme' | 'and' | 'or';
+
+/** A condition that checks the current Obsidian theme. */
+export type CalloutSettingsThemeCondition = { theme: ThemeID | '<default>' };
+
+/** A condition that checks the current color scheme of Obsidian */
+export type CalloutSettingsColorSchemeCondition = { colorScheme: 'dark' | 'light' };
+
+/** Conditions that can either be true or false by themselves. */
+export type CalloutSettingsElementaryConditions = CalloutSettingsThemeCondition | CalloutSettingsColorSchemeCondition;
+
+/** Conditions that combine other conditions based on binary logic operations. */
+export type CalloutSettingsCombinatoryConditions =
+	| { and: CalloutSettingsCondition[] }
+	| { or: CalloutSettingsCondition[] };
+
+/**
+ * Changes that can be applied to a callout.
+ */
+export type CalloutSettingsChanges = {
+	/**
+	 * Changes the callout color.
+	 */
+	color?: string;
+
+	/**
+	 * Changes the callout icon.
+	 */
+	icon?: string;
+
+	/**
+	 * Applies custom styles to the callout.
+	 */
+	customStyles?: string;
+};
+
+/**
+ * Conditions that affect when callout changes are applied.
+ */
+export type CalloutSettingsCondition =
+	| undefined
+	| CalloutSettingsElementaryConditions
+	| CalloutSettingsCombinatoryConditions;
+
+/**
+ * A setting that changes a callout's appearance when the given condition holds true.
+ * If no condition is provided (or it is undefined), the changes will always be applied.
+ */
+export type CalloutSetting<C extends CalloutSettingsCondition = CalloutSettingsCondition> = {
+	condition?: C;
+	changes: CalloutSettingsChanges;
+};
+
+/**
+ * An array of {@link CalloutSetting} objects.
+ */
+export type CalloutSettings<C extends CalloutSettingsCondition = CalloutSettingsCondition> = Array<CalloutSetting<C>>;

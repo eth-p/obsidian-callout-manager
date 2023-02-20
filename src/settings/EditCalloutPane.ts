@@ -1,8 +1,8 @@
 import { ButtonComponent } from 'obsidian';
 
 import { Callout, CalloutID } from '&callout';
+import { CalloutSettings } from '&callout-settings';
 import CalloutManagerPlugin from '&plugin';
-import { CalloutSettings } from '&plugin-settings';
 
 import { UIPane } from '&ui/pane';
 

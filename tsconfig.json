@@ -21,6 +21,7 @@
 			"obsidian-callout-manager": ["./api"],
 			"&callout": ["./api/callout"],
 			"&callout-resolver": ["./src/callout-resolver"],
+			"&callout-settings": ["./src/callout-settings"],
 			"&plugin": ["./src/main"],
 			"&plugin-settings": ["./src/settings"],
 			"&ui/*": ["./src/ui/*"],
