@@ -47,7 +47,7 @@ export class UISettingTab extends PluginSettingTab {
 
 		// Clear the container and create the elements.
 		containerEl.empty();
-		containerEl.classList.add('calloutmanager-setting-tab');
+		containerEl.classList.add('calloutmanager-setting-tab', 'calloutmanager-pane');
 
 		const headerEl = containerEl.createDiv({ cls: 'calloutmanager-setting-tab-header' });
 		layers.navEl = headerEl.createDiv({ cls: 'calloutmanager-setting-tab-nav' });
@@ -55,7 +55,9 @@ export class UISettingTab extends PluginSettingTab {
 
 		const controlsEl = headerEl.createDiv({ cls: 'calloutmanager-setting-tab-controls' });
 		layers.controlsEl = controlsEl.createDiv();
-		layers.scrollEl = containerEl.createDiv({ cls: 'calloutmanager-setting-tab-viewport vertical-tab-content' });
+		layers.scrollEl = containerEl.createDiv({
+			cls: 'calloutmanager-setting-tab-viewport vertical-tab-content',
+		});
 		layers.containerEl = layers.scrollEl.createDiv({ cls: 'calloutmanager-setting-tab-content' });
 
 		// Create a close button, since the native one is covered.
@@ -223,64 +225,6 @@ declare const STYLES: `
 
 		body:not(.is-phone) {
 			min-height: 100%;
-		}
-	}
-
-	// A centered box to help display help messages for empty searches.
-	.calloutmanager-setting-centerbox {
-		width: 100%;
-		height: 100%;
-
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-	}
-
-	// Improve form UX.
-	.calloutmanager-setting-tab {
-		// Make disabled buttons look disabled.
-		button[disabled] {
-			box-shadow: none;
-			background-color: var(--interactive-normal);
-
-			&:hover {
-				background-color: var(--interactive-normal);
-				cursor: not-allowed;
-			}
-		}
-
-		input[type='color'][disabled] {
-			cursor: not-allowed;
-		}
-
-		// Make invalid text boxes look invalid.
-		input:invalid:not(:placeholder-shown) {
-			border-color: var(--text-error);
-		}
-
-		// Improve color picker UX on mobile.
-		body.is-phone & input[type='color']::-webkit-color-swatch {
-			border-radius: var(--button-radius);
-			border: #f00 2px solid;
-			border: 1px solid var(--checkbox-border-color);
-		}
-	}
-
-	// Make clickable icons not too large on mobile.
-	.calloutmanager-setting-tab-content .setting-item-control,
-	.calloutmanager-setting-tab-controls {
-		body.is-phone & button.clickable-icon {
-			width: var(--button-height);
-		}
-	}
-
-	// Make clickable icons in setting panes more visible on mobile.
-	body.is-phone .calloutmanager-setting-tab-content .setting-item-control button.clickable-icon {
-		border: 1px solid var(--checkbox-border-color);
-
-		&.calloutmanager-setting-set {
-			// background-color: var(--background-modifier-border);
 		}
 	}
 `;

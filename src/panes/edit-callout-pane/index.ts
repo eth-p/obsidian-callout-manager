@@ -6,9 +6,9 @@ import CalloutManagerPlugin from '&plugin';
 
 import { UIPane } from '&ui/pane';
 
-import { EditCalloutPaneAppearance } from './EditCalloutPane_Appearance';
-import { renderInfo } from './EditCalloutPane_Info';
-import { EditCalloutPanePreview } from './EditCalloutPane_Preview';
+import { EditCalloutPaneAppearance } from './section-appearance';
+import { renderInfo } from './section-info';
+import { EditCalloutPanePreview } from './section-preview';
 
 const IMPOSSIBLE_CALLOUT_ID = '[not a real callout]';
 
@@ -77,7 +77,7 @@ export class EditCalloutPane extends UIPane {
 					this.nav.close();
 				})
 				.then(({ buttonEl }) =>
-					buttonEl.classList.add('clickable-icon', 'calloutmanager-edit-callout-delete-button'),
+					buttonEl.classList.add('clickable-icon', 'mod-warning'),
 				);
 		}
 	}
@@ -113,14 +113,6 @@ declare const STYLES: `
 		margin-bottom: 0.3em;
 		& + p {
 			margin-top: 0;
-		}
-	}
-
-	// Delete icon.
-	.calloutmanager-edit-callout-delete-button {
-		color: var(--text-error);
-		&:hover {
-			color: var(--text-error);
 		}
 	}
 `;

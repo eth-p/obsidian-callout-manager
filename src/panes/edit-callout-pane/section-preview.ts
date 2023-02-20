@@ -32,7 +32,7 @@ export class EditCalloutPanePreview {
 		// Create the callout preview.
 		const frag = document.createDocumentFragment();
 		this.sectionEl = frag.createDiv({
-			cls: ['calloutmanager-preview-container', 'callout-manager-edit-callout-preview'],
+			cls: ['calloutmanager-preview-container', 'calloutmanager-edit-callout-preview'],
 		});
 
 		this.preview = new IsolatedCalloutPreviewComponent(this.sectionEl, {

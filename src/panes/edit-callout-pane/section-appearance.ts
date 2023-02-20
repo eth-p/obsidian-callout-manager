@@ -14,7 +14,7 @@ import { UIPaneNavigation } from '&ui/pane';
 import { CalloutColorSetting } from '&ui/setting/callout-color';
 import { CalloutIconSetting } from '&ui/setting/callout-icon';
 
-import { typeofCondition } from '../callout-settings';
+import { typeofCondition } from '../../callout-settings';
 
 /**
  * The appearance section of the edit callout pane.

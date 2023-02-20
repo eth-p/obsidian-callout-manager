@@ -4,7 +4,7 @@ import CalloutManagerPlugin from '&plugin';
 
 import { UIPane } from '&ui/pane';
 
-import { EditCalloutPane } from '../settings/EditCalloutPane';
+import { EditCalloutPane } from './edit-callout-pane';
 
 export class CreateCalloutPane extends UIPane {
 	public readonly title = { title: 'Callouts', subtitle: 'New Callout' };

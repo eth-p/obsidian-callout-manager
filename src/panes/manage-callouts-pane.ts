@@ -8,9 +8,8 @@ import CalloutManagerPlugin from '&plugin';
 import { CalloutPreviewComponent } from '&ui/component/callout-preview';
 import { UIPane } from '&ui/pane';
 
-import { EditCalloutPane } from '../settings/EditCalloutPane';
-
 import { CreateCalloutPane } from './create-callout-pane';
+import { EditCalloutPane } from './edit-callout-pane';
 
 /**
  * The user interface pane for changing Callout Manager settings.
@@ -310,7 +309,7 @@ function comparePreviewByColor(a: CalloutForSearch, b: CalloutForSearch): number
 function createEmptySearchResultDiv(): { searchErrorDiv: HTMLElement; searchErrorQuery: HTMLElement } {
 	let searchErrorQuery!: HTMLElement;
 	const searchErrorDiv = document.createElement('div');
-	searchErrorDiv.className = 'calloutmanager-setting-centerbox';
+	searchErrorDiv.className = 'calloutmanager-centerbox';
 	const contentEl = searchErrorDiv.createDiv({ cls: 'calloutmanager-search-error' });
 
 	// Title.
@@ -374,21 +373,21 @@ declare const STYLES: `
 	}
 
 	.calloutmanager-preview-container-with-button {
-		--cm-edit-button-size: calc(var(--input-height) + 2 * var(--size-4-3));
+		--calloutmanager-callout-edit-buttons-size: calc(var(--input-height) + 2 * var(--size-4-3));
 		body.is-phone & {
-			--cm-edit-button-size: var(--input-height);
+			--calloutmanager-callout-edit-buttons-size: var(--input-height);
 		}
 
 		// Conver the preview into a grid.
 		display: grid;
-		grid-template-columns: 1fr var(--cm-edit-button-size);
+		grid-template-columns: 1fr var(--calloutmanager-callout-edit-buttons-size);
 
 		align-items: center;
 		gap: var(--size-4-2);
 
 		// Ensure the button has a small width, but can grow tall.
 		> button {
-			width: var(--cm-edit-button-size);
+			width: var(--calloutmanager-callout-edit-buttons-size);
 			height: 100%;
 
 			// Fix rendering not working on non-phone devices.

@@ -12,8 +12,20 @@ export class ResetButtonComponent extends ExtraButtonComponent {
 }
 
 declare const STYLES: `
+	:root {
+		--calloutmanager-reset-button-disabled-opacity: 0.3;
+	}
+
 	// The "undo" button when the setting has not been changed from the default.
 	.calloutmanager-reset-button:is(.is-disabled, [disabled]) {
-		opacity: 0.3;
+		opacity: var(--calloutmanager-reset-button-disabled-opacity);
+
+		&:hover {
+			background-color: transparent;
+		}
+
+		&:active {
+			color: var(--icon-color);
+		}
 	}
 `;
