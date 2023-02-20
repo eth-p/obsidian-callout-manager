@@ -376,10 +376,6 @@ function createLiveViewContainer(viewContentEl: HTMLDivElement): HTMLDivElement 
 // Styles:
 // ---------------------------------------------------------------------------------------------------------------------
 
-// ---------------------------------------------------------------------------------------------------------------------
-// Styles:
-// ---------------------------------------------------------------------------------------------------------------------
-
 declare const STYLES: `
 	// Reset the blend mode of the preview.
 	// The rendering of the callouts will be broken unless this is reset.

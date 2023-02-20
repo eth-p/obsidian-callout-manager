@@ -32,7 +32,7 @@ export function calloutSettingsToCSS(
 	settings: CalloutSettings,
 	environment: Parameters<typeof checkCondition>[1],
 ): string {
-	const styles = calloutSettingsToStyles(settings, environment).join(';\t');
+	const styles = calloutSettingsToStyles(settings, environment).join(';\n\t');
 	if (styles.length === 0) {
 		return '';
 	}
@@ -118,6 +118,7 @@ export function isComplexCondition(condition: CalloutSettingsCondition): boolean
 
 /**
  * Returns the type of condition of the provided condition.
+ *
  * @param condition The condition.
  * @returns The condition type.
  */

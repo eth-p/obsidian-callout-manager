@@ -129,6 +129,7 @@ export class EditCalloutPanePreview {
 		// Update the custom stylesheet of the callout preview.
 		preview.customStyleEl.textContent = styles;
 		preview.resetStylePropertyOverrides();
+		preview.removeStyles((el) => el.getAttribute('data-callout-manager') === 'style-overrides');
 
 		this.calloutHasIconReady = false;
 

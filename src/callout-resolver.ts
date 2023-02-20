@@ -38,7 +38,7 @@ export class CalloutResolver {
 	public reloadStyles(): void {
 		this.calloutPreview.setColorScheme(getCurrentColorScheme(app));
 		this.calloutPreview.updateStyles();
-		this.calloutPreview.removeStyles((el) => el.getAttribute('data-inject-id') === 'callout-settings');
+		this.calloutPreview.removeStyles((el) => el.getAttribute('data-callout-manager') === 'style-overrides');
 	}
 
 	/**

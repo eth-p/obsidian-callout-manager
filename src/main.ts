@@ -1,11 +1,5 @@
-import {
-	// Editor,
-	// MarkdownFileInfo,
-	// MarkdownView,
-	// Modal,
-	// Notice,
-	Plugin, // Setting,
-} from 'obsidian';
+import { Plugin } from 'obsidian';
+import { CustomStyleSheet, createCustomStyleSheet } from 'obsidian-extra';
 
 import type { CalloutID, CalloutManager } from '../api';
 
@@ -14,7 +8,6 @@ import { CalloutCollection } from './callout-collection';
 import builtinCallouts from './callout-fallback-obsidian.json';
 import { CalloutResolver } from './callout-resolver';
 import { calloutSettingsToCSS, currentCalloutEnvironment } from './callout-settings';
-import { StylesheetApplier } from './css-applier';
 import { getCalloutsFromCSS } from './css-parser';
 import StylesheetWatcher, { ObsidianStylesheet, SnippetStylesheet, ThemeStylesheet } from './css-watcher';
 import Settings, { CalloutSettings, defaultSettings, mergeSettings } from './settings';
@@ -25,7 +18,7 @@ import { ManagePluginPane } from './settings/ManagePluginPane';
 export default class CalloutManagerPlugin extends Plugin {
 	public settings!: Settings;
 	public cssWatcher!: StylesheetWatcher;
-	public cssApplier!: StylesheetApplier;
+	public cssApplier!: CustomStyleSheet;
 	public calloutResolver!: CalloutResolver;
 
 	public callouts!: CalloutCollection;
@@ -60,15 +53,12 @@ export default class CalloutManagerPlugin extends Plugin {
 		// Add the custom callouts.
 		this.callouts.custom.add(...settings.callouts.custom);
 
-		// Create the stylesheet applier.
-		this.cssApplier = new StylesheetApplier(this, 'callout-settings');
-		this.cssApplier.reapply();
-		this.register(this.cssApplier.start());
-
+		// Create a plugin-managed style sheet.
+		//  -> This is used to apply the user's custom styles to callouts.
+		this.cssApplier = createCustomStyleSheet(this.app, this);
+		this.cssApplier.setAttribute('data-callout-manager', 'style-overrides');
+		this.register(this.cssApplier);
 		this.applyStyles();
-		this.app.workspace.onLayoutReady(() => {
-			this.applyStyles();
-		});
 
 		// Create the stylesheet watcher.
 		// This will let us update the callout collection whenever any styles change.
@@ -223,8 +213,6 @@ export default class CalloutManagerPlugin extends Plugin {
 	/**
 	 * Generates the stylesheet for the user's custom callout settings and applies it to the page and the callout
 	 * resolver's custom stylesheet.
-	 * Regenerates the CSS from the user's custom callout settings.
-	 * This will apply the custom CSS to the resolver and the document.
 	 */
 	public applyStyles() {
 		const env = currentCalloutEnvironment(this.app);
@@ -237,7 +225,7 @@ export default class CalloutManagerPlugin extends Plugin {
 
 		// Apply the CSS.
 		const stylesheet = css.join('\n\n');
-		this.cssApplier.textContent = stylesheet;
+		this.cssApplier.css = stylesheet;
 		this.calloutResolver.customStyleEl.textContent = stylesheet;
 	}
 
