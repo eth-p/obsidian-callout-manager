@@ -10,7 +10,7 @@ export function renderInfo(app: App, callout: Callout, containerEl: HTMLElement)
 	const contentEl = frag.createDiv({ cls: 'calloutmanager-edit-callout-section' });
 
 	contentEl.createEl('h2', { text: 'About this Callout' });
-	contentEl.createEl('div', { cls: 'calloutmanager-edit-callout-section--info' }, (el) => {
+	contentEl.createEl('div', { cls: 'calloutmanager-edit-callout-info' }, (el) => {
 		el.appendText('The ');
 		el.createSpan({ cls: 'calloutmanager-edit-callout--callout-id', text: callout.id });
 		el.appendText(' callout');
@@ -104,7 +104,7 @@ function appendSourceInfo(app: App, el: HTMLElement, source: CalloutSource): boo
 
 declare const STYLES: `
 	// The info paragraph and list.
-	.calloutmanager-edit-callout-section--info {
+	.calloutmanager-edit-callout-info {
 		color: var(--text-muted);
 	}
 
