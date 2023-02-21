@@ -129,15 +129,16 @@ function determineNonComplexAppearanceType(
 	}
 
 	// Remove color from otherChanges.
+	const otherChangesColor = otherChanges.color;
 	delete otherChanges.color;
 
 	// If there aren't any dark or light color scheme colors defined, it's a unified color.
 	if (colorSchemeColor.dark === undefined && colorSchemeColor.light === undefined) {
-		if (otherChanges.color === undefined) {
+		if (otherChangesColor === undefined) {
 			return { type: 'unified', color: undefined, otherChanges };
 		}
 
-		return { type: 'unified', color: otherChanges.color, otherChanges };
+		return { type: 'unified', color: otherChangesColor, otherChanges };
 	}
 
 	// Split color.
