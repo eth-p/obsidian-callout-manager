@@ -3,14 +3,15 @@ import { dirname, join } from 'path';
 import { cwd } from 'process';
 
 export default function esbuildObsidian(options) {
-	const { packageJson, manifestFile, versionsFile } = {
+	const { packageJson, manifestFile, versionsFile, outdir } = {
 		packageJson: join(cwd(), 'package.json'),
+		outdir: undefined,
 		...(options ?? {})
 	};
 
 	function destinationFile(build, variable, name) {
 		if (variable != null) return variable;
-		const dir = build.initialOptions.outdir ?? dirname(build.initialOptions.outfile);
+		const dir = outdir ?? build.initialOptions.outdir ?? dirname(build.initialOptions.outfile);
 		return join(dir, name);
 	}
 

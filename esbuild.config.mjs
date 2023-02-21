@@ -28,7 +28,7 @@ const context = await esbuild.context({
 	bundle: true,
 	plugins: [
 		esbuildAlias(aliases),
-		esbuildObsidian({ manifestFile: `${outdir}/manifest.json` }), 
+		esbuildObsidian({ outdir: '.', manifestFile: `${outdir}/manifest.json` }), 
 		esbuildCssInJs({ compressed: prod })
 	],
 	format: 'cjs',
