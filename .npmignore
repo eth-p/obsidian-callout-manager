@@ -10,7 +10,14 @@
 
 # Development
 node_modules
-/esbuild*.mjs
+/tsconfig.json
+/build
+/*.config.cjs
+/*.config.mjs
+/.*
+
+# Deployment
+.github
 
 # Artifacts
 *.tsbuildinfo
