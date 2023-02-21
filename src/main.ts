@@ -20,15 +20,18 @@ export default class CalloutManagerPlugin extends Plugin {
 	public settings!: Settings;
 	public cssWatcher!: StylesheetWatcher;
 	public cssApplier!: CustomStyleSheet;
-	public calloutResolver!: CalloutResolver;
 
+	public calloutResolver!: CalloutResolver;
 	public callouts!: CalloutCollection;
-	// private removeStyles: CleanupFunction;
+
+	public apiHandles!: Map<Plugin, CalloutManagerAPI_V1>;
 
 	public settingTab!: UISettingTab;
 
 	/** @override */
 	public async onload() {
+		this.apiHandles = new Map();
+
 		await this.loadSettings();
 		await this.saveSettings();
 		const { settings } = this;
@@ -68,6 +71,13 @@ export default class CalloutManagerPlugin extends Plugin {
 		this.cssWatcher.on('change', this.updateCalloutSource.bind(this));
 		this.cssWatcher.on('remove', this.removeCalloutSource.bind(this));
 		this.cssWatcher.on('checkComplete', () => this.maybeRefreshCalloutBuiltinsWithFallback());
+
+		this.cssWatcher.on('checkComplete', (anyChanges) => {
+			if (anyChanges) {
+				this.emitApiEventChange();
+			}
+		});
+
 		this.app.workspace.onLayoutReady(() => {
 			this.register(this.cssWatcher.watch());
 		});
@@ -95,9 +105,6 @@ export default class CalloutManagerPlugin extends Plugin {
 			},
 		});
 	}
-
-	/** @override */
-	public onunload() {}
 
 	async loadSettings() {
 		this.settings = mergeSettings(defaultSettings(), await this.loadData());
@@ -159,6 +166,7 @@ export default class CalloutManagerPlugin extends Plugin {
 		callouts.custom.add(id);
 		settings.callouts.custom = callouts.custom.keys();
 		this.saveSettings();
+		this.emitApiEventChange(id);
 	}
 
 	/**
@@ -170,6 +178,7 @@ export default class CalloutManagerPlugin extends Plugin {
 		callouts.custom.delete(id);
 		settings.callouts.custom = callouts.custom.keys();
 		this.saveSettings();
+		this.emitApiEventChange(id);
 	}
 
 	/**
@@ -209,6 +218,9 @@ export default class CalloutManagerPlugin extends Plugin {
 		// Reapply.
 		this.applyStyles();
 		this.callouts.invalidate(id);
+
+		// Emit.
+		this.emitApiEventChange(id);
 	}
 
 	/**
@@ -266,7 +278,7 @@ export default class CalloutManagerPlugin extends Plugin {
 	}
 
 	/**
-	 * Creates an instance of the Callout Manager API for a plugin.
+	 * Creates (or gets) an instance of the Callout Manager API for a plugin.
 	 * If the plugin is undefined, only trivial functions are available.
 	 *
 	 * @param version The API version.
@@ -274,7 +286,40 @@ export default class CalloutManagerPlugin extends Plugin {
 	 *
 	 * @internal
 	 */
-	public newApiHandle(version: 'v1', consumerPlugin: Plugin | undefined): CalloutManager {
-		return new CalloutManagerAPI_V1();
+	public newApiHandle(version: 'v1', consumerPlugin: Plugin | undefined, cleanupFunc: () => void): CalloutManager {
+		if (version !== 'v1') throw new Error(`Unsupported Callout Manager API: ${version}`);
+		if (consumerPlugin == null) {
+			return new CalloutManagerAPI_V1(this, undefined);
+		}
+
+		const existing = this.apiHandles.get(consumerPlugin);
+		if (existing != null) {
+			return existing;
+		}
+
+		// Register the provided clean-up function on the consumer plugin.
+		// When the consumer plugin unloads, the cleanup function will call `destroyApiHandle`.
+		consumerPlugin.register(cleanupFunc);
+
+		// Create a new handle.
+		const handle = new CalloutManagerAPI_V1(this, consumerPlugin);
+		this.apiHandles.set(consumerPlugin, handle);
+		return handle;
+	}
+
+	public destroyApiHandle(version: 'v1', consumerPlugin: Plugin) {
+		if (version !== 'v1') throw new Error(`Unsupported Callout Manager API: ${version}`);
+
+		const handle = this.apiHandles.get(consumerPlugin);
+		if (handle == null) return;
+
+		handle.destroy();
+		this.apiHandles.delete(consumerPlugin);
+	}
+
+	public emitApiEventChange(callout?: CalloutID): void {
+		for (const handle of this.apiHandles.values()) {
+			handle._emit('change');
+		}
 	}
 }
