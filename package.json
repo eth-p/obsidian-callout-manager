@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-callout-manager",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "An Obsidian.md plugin that makes creating and configuring callouts easy.",
 	"type": "module",
 	"exports": {
@@ -21,7 +21,7 @@
 	"license": "MIT",
 	"obsidianPlugin": {
 		"name": "Callout Manager",
-		"minAppVersion": "0.1.0",
+		"minAppVersion": "1.0.0",
 		"isDesktopOnly": false
 	},
 	"dependencies": {
