@@ -42,9 +42,12 @@ async function ensureDir(dir) {
 }
 
 function createManifest(packageJsonData) {
+	const idRaw = packageJsonData.obsidianPlugin.id ?? packageJsonData.name;
+	const id = idRaw.startsWith("obsidian-") ? idRaw.substring("obsidian-".length) : idRaw;
+
 	return JSON.stringify(
 		{
-			id: packageJsonData.name,
+			id,
 			version: packageJsonData.version,
 			description: packageJsonData.description,
 			author: packageJsonData.author.name,

@@ -8,6 +8,10 @@
 /dist/styles.css
 /dist/manifest.json
 
+# Documentation
+/docs/images/*
+!/docs/images/screenshot_manage_pane_darklight.png
+
 # Development
 node_modules
 /tsconfig.json

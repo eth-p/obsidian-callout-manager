@@ -10,10 +10,10 @@ Table of Contents:
   - [`CalloutSource`](#calloutsource)
 - Functions
   - [`getApi`](#getapi) (package import)
-  - [`getCallouts`](#getcallouts) (handle)
-  - [`getColor`](#getcolor) (handle)
+  - [`getCallouts`](#getcallouts)
+  - [`getColor`](#getcolor)
 - Events
-  - [`on("change")`](#onchange-listener) / [`off("change")`](#offchange-listener) (owned handle)
+  - [`on("change")`](#onchange-listener) / [`off("change")`](#offchange-listener)
 
 ## Installation
 You can install Callout Manager's plugin API by adding the package through `npm` or `yarn`.
