@@ -48,6 +48,16 @@ export class CalloutCollection {
 	}
 
 	/**
+	 * Checks if a callout with this ID is in the collection.
+	 * @param id The callout ID.
+	 * @returns True if the callout is in the collection.
+	 */
+	public has(id: CalloutID): boolean {
+		if (!this.cached) this.buildCache();
+		return this.cacheById.has(id);
+	}
+
+	/**
 	 * Gets all the known {@link CalloutID callout IDs}.
 	 * @returns The callout IDs.
 	 */

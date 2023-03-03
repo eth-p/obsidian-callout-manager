@@ -70,7 +70,10 @@ export default class CalloutManagerPlugin extends Plugin {
 		this.cssWatcher.on('add', this.updateCalloutSource.bind(this));
 		this.cssWatcher.on('change', this.updateCalloutSource.bind(this));
 		this.cssWatcher.on('remove', this.removeCalloutSource.bind(this));
-		this.cssWatcher.on('checkComplete', () => this.maybeRefreshCalloutBuiltinsWithFallback());
+		this.cssWatcher.on('checkComplete', () => {
+			this.maybeRefreshCalloutBuiltinsWithFallback();
+			this.ensureChangedCalloutsKnown();
+		});
 
 		this.cssWatcher.on('checkComplete', (anyChanges) => {
 			if (anyChanges) {
@@ -154,7 +157,37 @@ export default class CalloutManagerPlugin extends Plugin {
 
 		this.cssWatcher.checkForChanges(true).then(() => {
 			this.maybeRefreshCalloutBuiltinsWithFallback();
+			this.ensureChangedCalloutsKnown();
 		});
+	}
+
+	/**
+	 * Ensures that any callouts which have changed settings are detected by the plugin.
+	 *
+	 * If a non-builtin callout was configured by the user and then removed, this plugin should consider
+	 * the callout to be custom so it can be seen in the list.
+	 */
+	private ensureChangedCalloutsKnown(): void {
+		// Missing callouts that have been configured should be added as custom callouts.
+		let hasAddedCallout = false;
+		const { settings, callouts } = this;
+		for (const [id, changes] of Object.entries(settings.callouts.settings)) {
+			if (!callouts.has(id) && changes.length > 0) {
+				hasAddedCallout = true;
+				callouts.custom.add(id);
+			}
+		}
+
+		if (hasAddedCallout) {
+			this.saveCustomCallouts();
+			this.emitApiEventChange();
+		}
+	}
+
+	private saveCustomCallouts(): Promise<void> {
+		const { callouts, settings } = this;
+		settings.callouts.custom = callouts.custom.keys();
+		return this.saveSettings();
 	}
 
 	/**
@@ -162,10 +195,9 @@ export default class CalloutManagerPlugin extends Plugin {
 	 * @param id The custom callout ID.
 	 */
 	public createCustomCallout(id: CalloutID): void {
-		const { callouts, settings } = this;
+		const { callouts } = this;
 		callouts.custom.add(id);
-		settings.callouts.custom = callouts.custom.keys();
-		this.saveSettings();
+		this.saveCustomCallouts();
 		this.emitApiEventChange(id);
 	}
 
