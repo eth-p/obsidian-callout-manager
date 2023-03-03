@@ -79,7 +79,7 @@ A type representing the ID of a callout.
 > &nbsp;&nbsp;&nbsp; { type: "builtin"; } |  
 > &nbsp;&nbsp;&nbsp; { type: "custom"; } |  
 > &nbsp;&nbsp;&nbsp; { type: "snippet"; snippet: string } |  
-> &nbsp;&nbsp;&nbsp; { type: "theme"; theme: string } |  
+> &nbsp;&nbsp;&nbsp; { type: "theme"; theme: string }
 
 The source of a callout.
 

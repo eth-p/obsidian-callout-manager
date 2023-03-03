@@ -1,5 +1,7 @@
+/**
+ * A type representing the ID of a callout.
+ */
 export type CalloutID = string;
-export default Callout;
 
 /**
  * A description of a markdown callout.
@@ -65,3 +67,5 @@ export interface CalloutSourceTheme {
 export interface CalloutSourceCustom {
 	type: 'custom';
 }
+
+export default Callout;

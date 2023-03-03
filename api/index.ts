@@ -4,6 +4,7 @@ import type { CalloutManager } from './functions';
 
 export * from './functions';
 export * from './callout';
+export * from './events';
 
 type ObsidianAppWithPlugins = App & {
 	plugins: {
@@ -16,14 +17,14 @@ export const PLUGIN_ID = 'callout-manager';
 export const PLUGIN_API_VERSION = 'v1';
 
 /**
- * Gets an owned reference to the Callout Manager plugin API.
+ * Gets an owned handle to the Callout Manager plugin API.
  * The provided plugin will be used as the owner.
  */
 export async function getApi(plugin: Plugin): Promise<CalloutManager<true> | undefined>;
 
 /**
- * Gets an unowned reference to the Callout Manager plugin API.
- * This reference cannot be used to register events.
+ * Gets an unowned handle to the Callout Manager plugin API.
+ * This handle cannot be used to register events.
  */
 export async function getApi(): Promise<CalloutManager<false> | undefined>;
 
