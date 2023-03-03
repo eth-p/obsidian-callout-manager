@@ -12,6 +12,7 @@ Table of Contents:
   - [`getApi`](#getapi) (package import)
   - [`getCallouts`](#getcallouts)
   - [`getColor`](#getcolor)
+  - [`getTitle`](#gettitle)
 - Events
   - [`on("change")`](#onchange-listener) / [`off("change")`](#offchange-listener)
 
@@ -114,6 +115,11 @@ Gets the list of available callouts.
 Parses the color of a callout into an Obsidian RGB object, or an object containing the property "invalid" if the color is not valid.
 
 If the parsing was successful, you can extract the red, green, and blue channels through `color.r`, `color.g`, and `color.b` respectively.
+
+### `getTitle`
+> **(handle).getTitle(callout: [Callout](#callout))**: string
+
+Gets the default title string for the provided callout.
 
 ### `on("change", listener)`
 > **(owned handle).on("change", listener: () => void)**

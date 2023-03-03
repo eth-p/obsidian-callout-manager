@@ -26,6 +26,13 @@ interface CalloutManagerUnownedHandle {
 	 * @param callout The callout.
 	 */
 	getColor(callout: Callout): RGB | { invalid: string };
+
+	/**
+	 * Gets the title text of a {@link Callout callout}.
+	 *
+	 * @param callout The callout.
+	 */
+	getTitle(callout: Callout): string;
 }
 
 /**

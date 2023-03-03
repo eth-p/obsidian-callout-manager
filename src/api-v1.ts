@@ -1,6 +1,6 @@
 import { Events, Plugin, RGB } from 'obsidian';
 
-import { getColorFromCallout } from '&callout-resolver';
+import { getColorFromCallout, getTitleFromCallout } from '&callout-resolver';
 import CalloutManagerPlugin from '&plugin';
 
 import { Callout, CalloutManager } from '../api';
@@ -38,6 +38,11 @@ export class CalloutManagerAPI_V1 implements CalloutManager<true> {
 	public getColor(callout: Callout): RGB | { invalid: string } {
 		const color = getColorFromCallout(callout);
 		return color ?? { invalid: callout.color };
+	}
+
+	/** @override */
+	public getTitle(callout: Callout): string {
+		return getTitleFromCallout(callout);
 	}
 
 	/** @override */
