@@ -182,11 +182,10 @@ export default class CalloutManagerPlugin extends Plugin {
 
 		// Remove the callout settings (if there are no other sources for it).
 		const calloutInstance = callouts.get(id);
-		console.log(calloutInstance);
 		if (calloutInstance == null || calloutInstance.sources.length < 1) {
 			delete settings.callouts.settings[id];
+			this.applyStyles();
 		}
-		console.log(settings.callouts.settings)
 
 		// Save settings and emit an API event.
 		this.saveSettings();

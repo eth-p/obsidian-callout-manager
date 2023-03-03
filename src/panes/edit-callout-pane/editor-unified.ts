@@ -22,7 +22,7 @@ export default class UnifiedAppearanceEditor extends AppearanceEditor<UnifiedApp
 			delete changes.color;
 		}
 
-		return [{ changes }];
+		return Object.keys(changes).length === 0 ? [] : [{ changes }];
 	}
 
 	public render() {
