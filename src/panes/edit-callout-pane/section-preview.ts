@@ -6,6 +6,7 @@ import { CalloutSettings, calloutSettingsToCSS, currentCalloutEnvironment } from
 import CalloutManagerPlugin from '&plugin';
 
 import { IsolatedCalloutPreviewComponent } from '&ui/component/callout-preview';
+import { getTitleFromCallout } from '&callout-resolver';
 
 /**
  * A callout preview for the edit callout pane.
@@ -37,7 +38,7 @@ export class EditCalloutPanePreview {
 
 		this.preview = new IsolatedCalloutPreviewComponent(this.sectionEl, {
 			id: callout.id,
-			title: callout.id,
+			title: getTitleFromCallout(callout),
 			icon: callout.icon,
 			colorScheme: getCurrentColorScheme(plugin.app),
 			content: (containerEl) => {

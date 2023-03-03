@@ -99,6 +99,24 @@ export function getColorFromCallout(callout: Callout): RGB | null {
 	return parseColorRGB(`rgb(${callout.color})`);
 }
 
+/**
+ * Gets the title of a callout.
+ *
+ * This should be the same as what Obsidian displays when a callout block does not have a user-specified title.
+ *
+ * @param callout The callout.
+ * @returns The callout's title.
+ */
+export function getTitleFromCallout(callout: Callout): string {
+	const matches = /^(.)(.*)/u.exec(callout.id);
+	if (matches == null) return callout.id;
+
+	const firstChar = matches[1].toLocaleUpperCase();
+	const remainingChars = matches[2].toLocaleLowerCase().replace(/-+/g, " ");
+
+	return `${firstChar}${remainingChars}`;
+}
+
 declare const STYLES: `
 	.calloutmanager-callout-resolver {
 		display: none !important;

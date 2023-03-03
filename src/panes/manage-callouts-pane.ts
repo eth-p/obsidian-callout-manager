@@ -1,7 +1,7 @@
 import { ButtonComponent, SearchResult, TextComponent, getIcon, prepareFuzzySearch } from 'obsidian';
 
 import { Callout } from '&callout';
-import { getColorFromCallout } from '&callout-resolver';
+import { getColorFromCallout, getTitleFromCallout } from '&callout-resolver';
 import { toHSV } from '&color';
 import CalloutManagerPlugin from '&plugin';
 
@@ -285,6 +285,7 @@ function createPreview(callout: Callout, calloutContainerEl: HTMLElement): Callo
 		preview: new CalloutPreviewComponent(calloutContainerEl, {
 			id,
 			icon,
+			title: getTitleFromCallout(callout),
 			color: color ?? undefined,
 		}),
 	};
