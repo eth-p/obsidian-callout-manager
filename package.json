@@ -22,6 +22,7 @@
 	"obsidianPlugin": {
 		"name": "Callout Manager",
 		"minAppVersion": "1.0.0",
+		"description": "Easily create and customize callouts.",
 		"isDesktopOnly": false
 	},
 	"dependencies": {
