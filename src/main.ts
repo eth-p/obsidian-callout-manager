@@ -217,7 +217,7 @@ export default class CalloutManagerPlugin extends Plugin {
 		const calloutSettings = this.settings.callouts.settings;
 
 		// Update settings.
-		if (settings === undefined) {
+		if (settings === undefined || settings.length < 1) {
 			delete calloutSettings[id];
 		} else {
 			calloutSettings[id] = settings;
