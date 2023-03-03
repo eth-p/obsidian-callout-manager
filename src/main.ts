@@ -171,12 +171,24 @@ export default class CalloutManagerPlugin extends Plugin {
 
 	/**
 	 * Delete a custom callout.
+	 * If there are no other sources for the callout, its settings will be purged.
+	 *
 	 * @param id The custom callout ID.
 	 */
 	public removeCustomCallout(id: CalloutID): void {
 		const { callouts, settings } = this;
 		callouts.custom.delete(id);
 		settings.callouts.custom = callouts.custom.keys();
+
+		// Remove the callout settings (if there are no other sources for it).
+		const calloutInstance = callouts.get(id);
+		console.log(calloutInstance);
+		if (calloutInstance == null || calloutInstance.sources.length < 1) {
+			delete settings.callouts.settings[id];
+		}
+		console.log(settings.callouts.settings)
+
+		// Save settings and emit an API event.
 		this.saveSettings();
 		this.emitApiEventChange(id);
 	}
