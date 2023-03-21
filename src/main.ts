@@ -25,6 +25,8 @@ export default class CalloutManagerPlugin extends Plugin {
 	public callouts!: CalloutCollection;
 
 	public apiHandles!: Map<Plugin, CalloutManagerAPI_V1>;
+	private apiReadySignal!: () => void;
+	private apiReadyWait = new Promise((resolve, reject) => this.apiReadySignal = resolve as () => void);
 
 	public settingTab!: UISettingTab;
 
@@ -107,6 +109,9 @@ export default class CalloutManagerPlugin extends Plugin {
 				this.settingTab.openWithPane(new ManageCalloutsPane(this));
 			},
 		});
+
+		// Signal to wake async functions waiting for the API to be ready.
+		this.apiReadySignal();
 	}
 
 	async loadSettings() {
@@ -329,12 +334,18 @@ export default class CalloutManagerPlugin extends Plugin {
 	 *
 	 * @internal
 	 */
-	public newApiHandle(version: 'v1', consumerPlugin: Plugin | undefined, cleanupFunc: () => void): CalloutManager {
+	public async newApiHandle(version: 'v1', consumerPlugin: Plugin | undefined, cleanupFunc: () => void): Promise<CalloutManager> {
 		if (version !== 'v1') throw new Error(`Unsupported Callout Manager API: ${version}`);
+
+		// Wait for the plugin to finish loading.
+		await this.apiReadyWait;
+
+		// If we aren't trying to create an owned handle, create and return an unowned one.
 		if (consumerPlugin == null) {
 			return new CalloutManagerAPI_V1(this, undefined);
 		}
 
+		// Otherwise, give back the owned handle for the plugin if we already have one.
 		const existing = this.apiHandles.get(consumerPlugin);
 		if (existing != null) {
 			return existing;
@@ -350,6 +361,14 @@ export default class CalloutManagerPlugin extends Plugin {
 		return handle;
 	}
 
+	/**
+	 * Destroys an API handle created by {@link newApiHandle}.
+	 *
+	 * @param version The API version.
+	 * @param consumerPlugin The plugin using the API.
+	 *
+	 * @internal
+	 */
 	public destroyApiHandle(version: 'v1', consumerPlugin: Plugin) {
 		if (version !== 'v1') throw new Error(`Unsupported Callout Manager API: ${version}`);
 

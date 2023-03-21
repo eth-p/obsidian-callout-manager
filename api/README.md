@@ -110,7 +110,7 @@ This only has access to a subset of API functions.
 Gets the list of available callouts.
 
 ### `getColor`
-> **(handle).getColor(callout: [Callout](#callout))**: [RGB] | { invalid: string }
+> **(handle).getColor(callout: [Callout](#callout))**: RGB | { invalid: string }
 
 Parses the color of a callout into an Obsidian RGB object, or an object containing the property "invalid" if the color is not valid.
 

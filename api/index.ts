@@ -9,6 +9,7 @@ export * from './events';
 type ObsidianAppWithPlugins = App & {
 	plugins: {
 		enabledPlugins: Set<string>;
+		manifests: { [key: string]: unknown };
 		plugins: { [key: string]: Plugin };
 	};
 };
@@ -37,34 +38,24 @@ export async function getApi(plugin?: Plugin): Promise<CalloutManager | undefine
 			version: string,
 			plugin: Plugin | undefined,
 			cleanupFunc: () => void,
-		): CalloutManager<true | false>;
+		): Promise<CalloutManager<true | false>>;
 
 		destroyApiHandle(version: string, plugin: Plugin | undefined): CalloutManager<true | false>;
 	};
 
-	// Check if the plugin is available and loaded.
+	// Check if the plugin is installed and enabled.
 	const app = (plugin?.app ?? globalThis.app) as ObsidianAppWithPlugins;
-	const { plugins } = app;
-	if (!plugins.enabledPlugins.has(PLUGIN_ID)) {
+	if (!isInstalled(app)) {
 		return undefined;
 	}
 
 	// Get the plugin instance.
 	// We may need to wait until it's loaded.
-	const calloutManagerInstance = (await new Promise((resolve, reject) => {
-		const instance = plugins.plugins[PLUGIN_ID] as CalloutManagerPlugin | undefined;
-		if (instance !== undefined) {
-			return resolve(instance);
-		}
-
-		const interval = setInterval(() => {
-			const instance = plugins.plugins[PLUGIN_ID] as CalloutManagerPlugin | undefined;
-			if (instance !== undefined) {
-				clearInterval(interval);
-				resolve(instance);
-			}
-		}, 10);
-	})) as CalloutManagerPlugin;
+	const { plugins } = app;
+	const calloutManagerInstance = await waitFor<CalloutManagerPlugin>((resolve) => {
+		const instance = plugins.plugins[PLUGIN_ID] as CalloutManagerPlugin;
+		if (instance != null) resolve(instance);
+	});
 
 	// Create a new API handle.
 	return calloutManagerInstance.newApiHandle(PLUGIN_API_VERSION, plugin, () => {
@@ -77,6 +68,41 @@ export async function getApi(plugin?: Plugin): Promise<CalloutManager | undefine
  */
 export function isInstalled(app?: App) {
 	// Check if the plugin is available and loaded.
-	const appWithPlugins = (app ?? globalThis.app) as ObsidianAppWithPlugins;
-	return appWithPlugins.plugins.enabledPlugins.has(PLUGIN_ID);
+	const plugins = ((app ?? globalThis.app) as ObsidianAppWithPlugins).plugins;
+	return PLUGIN_ID in plugins.manifests && plugins.enabledPlugins.has(PLUGIN_ID);
+}
+
+/**
+ * Runs a function every 10 milliseconds, returning a promise that resolves when the function resolves.
+ *
+ * @param fn A function that runs periodically, waiting for something to happen.
+ * @returns A promise that resolves to whatever the function wants to return.
+ */
+function waitFor<T>(fn: (resolve: (value: T) => void) => void | PromiseLike<void>): Promise<T> {
+	return new Promise((doResolve, reject) => {
+		let queueAttempt = () => {
+			setTimeout(attempt, 10);
+		};
+
+		const resolve = (value: T) => {
+			queueAttempt = () => {};
+			doResolve(value);
+		};
+
+		function attempt() {
+			try {
+				const promise = fn(resolve);
+				if (promise === undefined) {
+					queueAttempt();
+					return;
+				}
+
+				promise.then(queueAttempt, (ex) => reject(ex));
+			} catch (ex) {
+				reject(ex);
+			}
+		}
+
+		attempt();
+	});
 }
