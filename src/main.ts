@@ -5,7 +5,6 @@ import { UISettingTab } from '&ui/paned-setting-tab';
 
 import type { CalloutID, CalloutManager } from '../api';
 
-import { CalloutManagerAPI_V1 } from './api-v1';
 import { CalloutCollection } from './callout-collection';
 import builtinCallouts from './callout-fallback-obsidian.json';
 import { CalloutResolver } from './callout-resolver';
@@ -15,6 +14,7 @@ import StylesheetWatcher, { ObsidianStylesheet, SnippetStylesheet, ThemeStyleshe
 import { ManageCalloutsPane } from './panes/manage-callouts-pane';
 import { ManagePluginPane } from './panes/manage-plugin-pane';
 import Settings, { defaultSettings, mergeSettings } from './settings';
+import { CalloutManagerAPIs } from './apis';
 
 export default class CalloutManagerPlugin extends Plugin {
 	public settings!: Settings;
@@ -24,7 +24,7 @@ export default class CalloutManagerPlugin extends Plugin {
 	public calloutResolver!: CalloutResolver;
 	public callouts!: CalloutCollection;
 
-	public apiHandles!: Map<Plugin, CalloutManagerAPI_V1>;
+	public api!: CalloutManagerAPIs;
 	private apiReadySignal!: () => void;
 	private apiReadyWait = new Promise((resolve, reject) => this.apiReadySignal = resolve as () => void);
 
@@ -32,8 +32,6 @@ export default class CalloutManagerPlugin extends Plugin {
 
 	/** @override */
 	public async onload() {
-		this.apiHandles = new Map();
-
 		await this.loadSettings();
 		await this.saveSettings();
 		const { settings } = this;
@@ -79,7 +77,7 @@ export default class CalloutManagerPlugin extends Plugin {
 
 		this.cssWatcher.on('checkComplete', (anyChanges) => {
 			if (anyChanges) {
-				this.emitApiEventChange();
+				this.api.emitEventForCalloutChange();
 			}
 		});
 
@@ -111,6 +109,7 @@ export default class CalloutManagerPlugin extends Plugin {
 		});
 
 		// Signal to wake async functions waiting for the API to be ready.
+		this.api = new CalloutManagerAPIs(this);
 		this.apiReadySignal();
 	}
 
@@ -185,7 +184,7 @@ export default class CalloutManagerPlugin extends Plugin {
 
 		if (hasAddedCallout) {
 			this.saveCustomCallouts();
-			this.emitApiEventChange();
+			this.api.emitEventForCalloutChange();
 		}
 	}
 
@@ -203,7 +202,7 @@ export default class CalloutManagerPlugin extends Plugin {
 		const { callouts } = this;
 		callouts.custom.add(id);
 		this.saveCustomCallouts();
-		this.emitApiEventChange(id);
+		this.api.emitEventForCalloutChange(id);
 	}
 
 	/**
@@ -226,7 +225,7 @@ export default class CalloutManagerPlugin extends Plugin {
 
 		// Save settings and emit an API event.
 		this.saveSettings();
-		this.emitApiEventChange(id);
+		this.api.emitEventForCalloutChange(id);
 	}
 
 	/**
@@ -268,7 +267,7 @@ export default class CalloutManagerPlugin extends Plugin {
 		this.callouts.invalidate(id);
 
 		// Emit.
-		this.emitApiEventChange(id);
+		this.api.emitEventForCalloutChange(id);
 	}
 
 	/**
@@ -335,30 +334,8 @@ export default class CalloutManagerPlugin extends Plugin {
 	 * @internal
 	 */
 	public async newApiHandle(version: 'v1', consumerPlugin: Plugin | undefined, cleanupFunc: () => void): Promise<CalloutManager> {
-		if (version !== 'v1') throw new Error(`Unsupported Callout Manager API: ${version}`);
-
-		// Wait for the plugin to finish loading.
 		await this.apiReadyWait;
-
-		// If we aren't trying to create an owned handle, create and return an unowned one.
-		if (consumerPlugin == null) {
-			return new CalloutManagerAPI_V1(this, undefined);
-		}
-
-		// Otherwise, give back the owned handle for the plugin if we already have one.
-		const existing = this.apiHandles.get(consumerPlugin);
-		if (existing != null) {
-			return existing;
-		}
-
-		// Register the provided clean-up function on the consumer plugin.
-		// When the consumer plugin unloads, the cleanup function will call `destroyApiHandle`.
-		consumerPlugin.register(cleanupFunc);
-
-		// Create a new handle.
-		const handle = new CalloutManagerAPI_V1(this, consumerPlugin);
-		this.apiHandles.set(consumerPlugin, handle);
-		return handle;
+		return this.api.newHandle(version, consumerPlugin, cleanupFunc);
 	}
 
 	/**
@@ -371,17 +348,6 @@ export default class CalloutManagerPlugin extends Plugin {
 	 */
 	public destroyApiHandle(version: 'v1', consumerPlugin: Plugin) {
 		if (version !== 'v1') throw new Error(`Unsupported Callout Manager API: ${version}`);
-
-		const handle = this.apiHandles.get(consumerPlugin);
-		if (handle == null) return;
-
-		handle.destroy();
-		this.apiHandles.delete(consumerPlugin);
-	}
-
-	public emitApiEventChange(callout?: CalloutID): void {
-		for (const handle of this.apiHandles.values()) {
-			handle._emit('change');
-		}
+		return this.api.destroyHandle(version, consumerPlugin);
 	}
 }

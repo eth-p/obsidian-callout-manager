@@ -5,16 +5,18 @@ import CalloutManagerPlugin from '&plugin';
 
 import { Callout, CalloutManager } from '../api';
 import { CalloutManagerEvent, CalloutManagerEventListener } from '../api/events';
+import { destroy, emitter } from './api-common';
 
 export class CalloutManagerAPI_V1 implements CalloutManager<true> {
 	private readonly plugin: CalloutManagerPlugin;
 	private readonly consumer: Plugin | undefined;
-	readonly #emitter: Events;
+
+	public readonly [emitter]: Events;
 
 	public constructor(plugin: CalloutManagerPlugin, consumer: Plugin | undefined) {
 		this.plugin = plugin;
 		this.consumer = consumer;
-		this.#emitter = new Events();
+		this[emitter] = new Events();
 
 		if (consumer != null) {
 			console.debug('Created API V1 Handle:', { plugin: consumer.manifest.id });
@@ -24,7 +26,7 @@ export class CalloutManagerAPI_V1 implements CalloutManager<true> {
 	/**
 	 * Called to destroy an API handle bound to a consumer.
 	 */
-	public destroy() {
+	public [destroy]() {
 		const consumer = this.consumer as Plugin;
 		console.debug('Destroyed API V1 Handle:', { plugin: consumer.manifest.id });
 	}
@@ -51,7 +53,7 @@ export class CalloutManagerAPI_V1 implements CalloutManager<true> {
 			throw new Error('Cannot listen for events without an API consumer.');
 		}
 
-		this.#emitter.on(event, listener);
+		this[emitter].on(event, listener);
 	}
 
 	/** @override */
@@ -60,10 +62,6 @@ export class CalloutManagerAPI_V1 implements CalloutManager<true> {
 			throw new Error('Cannot listen for events without an API consumer.');
 		}
 
-		this.#emitter.off(event, listener);
-	}
-
-	public _emit<E extends CalloutManagerEvent>(event: E, ...params: Parameters<CalloutManagerEventListener<E>>): void {
-		this.#emitter.trigger(event, params);
+		this[emitter].off(event, listener);
 	}
 }
