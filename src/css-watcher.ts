@@ -1,6 +1,7 @@
 import { Events, App as ObsidianApp } from 'obsidian';
 import {
-	fetchObsidianStyles,
+	ObsidianStyleSheet as ObsidianStylesAndMetadata,
+	fetchObsidianStyleSheet,
 	getCurrentThemeID,
 	getSnippetStyleElements,
 	getThemeManifest,
@@ -13,7 +14,7 @@ import { App, Latest, SnippetID, ThemeID } from 'obsidian-undocumented';
  * This is used to prevent unnecessary parsing of unchanged stylesheets.
  */
 export default class StylesheetWatcher {
-	protected cachedObsidian: string | null;
+	protected cachedObsidian: ObsidianStylesAndMetadata | null;
 	protected cachedTheme: { id: ThemeID; version: string; contents: string } | null;
 	protected cachedSnippets: Map<SnippetID, string>;
 	protected listeners: Map<string, Set<(...data: unknown[]) => void>>;
@@ -70,6 +71,28 @@ export default class StylesheetWatcher {
 
 			this.watching = false;
 		};
+	}
+
+	/**
+	 * Describes how the Obsidian stylesheet was fetched, for the purpose of telling the user
+	 * within the plugin's settings pane. The string will be concatenated as `Find built-in Obsidian callouts ${text}`.
+	 *
+	 * This uses the extra metadata attached to the {@link ObsidianStylesAndMetadata}.
+	 */
+	public describeObsidianFetchMethod(): string {
+		switch (this.cachedObsidian?.method ?? 'pending') {
+			case 'dom':
+				return 'using browser functions';
+
+			case 'electron':
+				return 'using undocumented functions';
+
+			case 'fetch':
+				return "by reading Obsidian's styles";
+
+			case 'pending':
+				return '';
+		}
 	}
 
 	/**
@@ -199,10 +222,10 @@ export default class StylesheetWatcher {
 	 */
 	protected async checkForChangesObsidian(): Promise<boolean> {
 		try {
-			this.cachedObsidian = await fetchObsidianStyles(this.app);
+			this.cachedObsidian = await fetchObsidianStyleSheet(this.app);
 			this.emit('change', {
 				type: 'obsidian',
-				styles: this.cachedObsidian,
+				styles: this.cachedObsidian.cssText,
 			});
 
 			return true;

@@ -44,9 +44,10 @@ export class ManagePluginPane extends UIPane {
 				(() => {
 					const desc = document.createDocumentFragment();
 					const container = desc.createDiv();
+					const method = plugin.cssWatcher.describeObsidianFetchMethod();
 
 					container.createDiv({
-						text: 'Find built-in Obsidian callouts.',
+						text: `Find built-in Obsidian callouts${method === '' ? '' : ' '}${method}.`,
 					});
 
 					return desc;
