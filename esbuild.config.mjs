@@ -28,9 +28,12 @@ const context = await esbuild.context({
 	bundle: true,
 	plugins: [
 		esbuildAlias(aliases),
-		esbuildObsidian({ outdir: '.' }), 
+		esbuildObsidian({ outdir: '.' }),
 		esbuildCssInJs({ compressed: prod })
 	],
+	loader: {
+		'.md': 'text',
+	},
 	format: 'cjs',
 	target: 'es2018',
 	logLevel: 'info',

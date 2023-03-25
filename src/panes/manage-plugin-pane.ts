@@ -4,6 +4,9 @@ import CalloutManagerPlugin from '&plugin';
 
 import { UIPane } from '&ui/pane';
 
+import { getSections } from '../changelog';
+
+import { ChangelogPane } from './changelog-pane';
 import { ManageCalloutsPane } from './manage-callouts-pane';
 
 export class ManagePluginPane extends UIPane {
@@ -94,6 +97,30 @@ export class ManagePluginPane extends UIPane {
 			});
 
 		// -----------------------------------------------------------------------------------------------------
+		// Section: Changelog
+		// -----------------------------------------------------------------------------------------------------
+		new Setting(containerEl)
+			.setHeading()
+			.setName("What's New")
+			.setDesc(`Version ${this.plugin.manifest.version}`)
+			.addExtraButton((btn) => {
+				btn.setIcon('lucide-more-horizontal')
+					.setTooltip('More Changelogs')
+					.onClick(() => this.nav.open(new ChangelogPane(plugin)));
+			});
+
+		const latestChanges = getSections().get(this.plugin.manifest.version);
+		if (latestChanges != null) {
+			const desc = document.createDocumentFragment();
+			desc.appendChild(latestChanges.contentsEl);
+
+			new Setting(containerEl)
+				.setDesc(desc)
+				.then((setting) => setting.controlEl.remove())
+				.then((setting) => setting.settingEl.classList.add('calloutmanager-latest-changes'));
+		}
+
+		// -----------------------------------------------------------------------------------------------------
 		// Section: Reset
 		// -----------------------------------------------------------------------------------------------------
 		new Setting(containerEl).setHeading().setName('Reset');
@@ -172,3 +199,19 @@ function withConfirm(callback: (btn: ButtonComponent) => any): (btn: ButtonCompo
 		callback(btn);
 	};
 }
+
+declare const STYLES: `
+	.calloutmanager-latest-changes {
+		padding: 0.75em 0;
+    	border-top: 1px solid var(--background-modifier-border);
+
+		.calloutmanager-changelog-section {
+			> :first-child { margin-top: 0; }
+			> :last-child { margin-bottom: 0; }
+		}
+
+		.callout {
+			background: none;
+		}
+	}
+`;
