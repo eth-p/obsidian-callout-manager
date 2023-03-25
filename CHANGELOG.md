@@ -3,6 +3,9 @@
 > [!new] In-App Changelogs  
 > Learn about plugin changes and new features straight from the horse's mouth.
 
+> [!fix] More Robust Callout Detection  
+> The code monkey (developer) learned a couple new tricks, and now Callout Manager can detect Obsidian callouts on all platforms and versions without resorting to fallback lists.
+
 # Version 1.0.1
 The first release available on Obsidian's community plugin browser!
 

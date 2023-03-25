@@ -12,10 +12,12 @@ export default interface Settings {
 	};
 
 	calloutDetection: {
-		obsidianFallbackForced: boolean;
 		obsidian: boolean;
 		theme: boolean;
 		snippet: boolean;
+
+		/** @deprecated */
+		obsidianFallbackForced?: boolean;
 	};
 }
 
@@ -29,7 +31,6 @@ export function defaultSettings(): Settings {
 			settings: {},
 		},
 		calloutDetection: {
-			obsidianFallbackForced: false,
 			obsidian: true,
 			theme: true,
 			snippet: true,
@@ -38,18 +39,21 @@ export function defaultSettings(): Settings {
 }
 
 /**
- * Merges settings.
+ * Migrates settings.
  *
  * @param into The object to merge into.
  * @param from The settings to add.
  * @returns The merged settings.
  */
-export function mergeSettings(into: Settings, from: Settings | undefined) {
-	return Object.assign(into, {
+export function migrateSettings(into: Settings, from: Settings | undefined) {
+	const merged = Object.assign(into, {
 		...from,
 		calloutDetection: {
 			...into.calloutDetection,
 			...(from?.calloutDetection ?? {}),
 		},
 	});
+
+	delete merged.calloutDetection.obsidianFallbackForced;
+	return merged;
 }
