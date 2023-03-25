@@ -36,9 +36,7 @@ export class ManagePluginPane extends UIPane {
 		// -----------------------------------------------------------------------------------------------------
 		// Section: Callout Detection
 		// -----------------------------------------------------------------------------------------------------
-		new Setting(containerEl)
-			.setHeading()
-			.setName('Callout Detection');
+		new Setting(containerEl).setHeading().setName('Callout Detection');
 
 		new Setting(containerEl)
 			.setName('Obsidian')
@@ -48,20 +46,8 @@ export class ManagePluginPane extends UIPane {
 					const container = desc.createDiv();
 
 					container.createDiv({
-						text: plugin.settings.calloutDetection.obsidianFallbackForced
-							? 'Include the built-in Obsidian callouts.'
-							: 'Find built-in Obsidian callouts.',
+						text: 'Find built-in Obsidian callouts.',
 					});
-
-					if (
-						!plugin.cssWatcher.isObsidianStylesheetSupported() &&
-						!plugin.settings.calloutDetection.obsidianFallbackForced
-					) {
-						container.createDiv({
-							cls: 'mod-warning',
-							text: 'Your current platform does not support automatic detection. A fallback list will be used.',
-						});
-					}
 
 					return desc;
 				})(),

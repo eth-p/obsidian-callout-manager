@@ -13,25 +13,22 @@ import { App, Latest, SnippetID, ThemeID } from 'obsidian-undocumented';
  * This is used to prevent unnecessary parsing of unchanged stylesheets.
  */
 export default class StylesheetWatcher {
-	protected cachedObsidian: string | null | false;
+	protected cachedObsidian: string | null;
 	protected cachedTheme: { id: ThemeID; version: string; contents: string } | null;
 	protected cachedSnippets: Map<SnippetID, string>;
 	protected listeners: Map<string, Set<(...data: unknown[]) => void>>;
 
 	protected watching: boolean;
 	protected app: App;
-	protected disableObsidianStylesheet: boolean;
 
-	public constructor(app: ObsidianApp, disableObsidianStylesheet: boolean) {
+	public constructor(app: ObsidianApp) {
 		this.app = app as App<Latest>;
 
 		this.listeners = new Map();
 		this.cachedSnippets = new Map();
-		this.cachedObsidian = disableObsidianStylesheet ? false : null;
+		this.cachedObsidian = null;
 		this.cachedTheme = null;
 		this.watching = false;
-
-		this.disableObsidianStylesheet = disableObsidianStylesheet;
 	}
 
 	/**
@@ -182,7 +179,7 @@ export default class StylesheetWatcher {
 		}
 
 		// Fetch the Obsidian stylesheet.
-		if (this.cachedObsidian == null && !this.disableObsidianStylesheet) {
+		if (this.cachedObsidian == null) {
 			changed = (await this.checkForChangesObsidian()) || changed;
 		}
 
@@ -201,11 +198,6 @@ export default class StylesheetWatcher {
 	 * @returns true if the fetch was successful.
 	 */
 	protected async checkForChangesObsidian(): Promise<boolean> {
-		if (this.cachedObsidian === false) {
-			// Explicitly unsupported.
-			return false;
-		}
-
 		try {
 			this.cachedObsidian = await fetchObsidianStyles(this.app);
 			this.emit('change', {
@@ -215,7 +207,6 @@ export default class StylesheetWatcher {
 
 			return true;
 		} catch (ex) {
-			this.cachedObsidian = false;
 			console.warn('Unable to fetch Obsidian stylesheet.', ex);
 			return false;
 		}
@@ -310,13 +301,6 @@ export default class StylesheetWatcher {
 
 		// Return.
 		return anyChanges;
-	}
-
-	/**
-	 * Returns true if fetching the Obsidian stylesheet is supported.
-	 */
-	public isObsidianStylesheetSupported(): boolean {
-		return !this.disableObsidianStylesheet && this.cachedObsidian !== false;
 	}
 }
 

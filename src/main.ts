@@ -6,14 +6,13 @@ import { UISettingTab } from '&ui/paned-setting-tab';
 import type { CalloutID, CalloutManager } from '../api';
 
 import { CalloutCollection } from './callout-collection';
-import builtinCallouts from './callout-fallback-obsidian.json';
 import { CalloutResolver } from './callout-resolver';
 import { CalloutSettings, calloutSettingsToCSS, currentCalloutEnvironment } from './callout-settings';
 import { getCalloutsFromCSS } from './css-parser';
 import StylesheetWatcher, { ObsidianStylesheet, SnippetStylesheet, ThemeStylesheet } from './css-watcher';
 import { ManageCalloutsPane } from './panes/manage-callouts-pane';
 import { ManagePluginPane } from './panes/manage-plugin-pane';
-import Settings, { defaultSettings, mergeSettings } from './settings';
+import Settings, { defaultSettings, migrateSettings } from './settings';
 import { CalloutManagerAPIs } from './apis';
 
 export default class CalloutManagerPlugin extends Plugin {
@@ -66,12 +65,11 @@ export default class CalloutManagerPlugin extends Plugin {
 
 		// Create the stylesheet watcher.
 		// This will let us update the callout collection whenever any styles change.
-		this.cssWatcher = new StylesheetWatcher(this.app, settings.calloutDetection.obsidianFallbackForced);
+		this.cssWatcher = new StylesheetWatcher(this.app);
 		this.cssWatcher.on('add', this.updateCalloutSource.bind(this));
 		this.cssWatcher.on('change', this.updateCalloutSource.bind(this));
 		this.cssWatcher.on('remove', this.removeCalloutSource.bind(this));
 		this.cssWatcher.on('checkComplete', () => {
-			this.maybeRefreshCalloutBuiltinsWithFallback();
 			this.ensureChangedCalloutsKnown();
 		});
 
@@ -119,7 +117,7 @@ export default class CalloutManagerPlugin extends Plugin {
 	}
 
 	async loadSettings() {
-		this.settings = mergeSettings(defaultSettings(), await this.loadData());
+		this.settings = migrateSettings(defaultSettings(), await this.loadData());
 	}
 
 	async saveSettings() {
@@ -165,7 +163,6 @@ export default class CalloutManagerPlugin extends Plugin {
 		this.callouts.builtin.set([]);
 
 		this.cssWatcher.checkForChanges(true).then(() => {
-			this.maybeRefreshCalloutBuiltinsWithFallback();
 			this.ensureChangedCalloutsKnown();
 		});
 	}
@@ -292,21 +289,6 @@ export default class CalloutManagerPlugin extends Plugin {
 		const stylesheet = css.join('\n\n');
 		this.cssApplier.css = stylesheet;
 		this.calloutResolver.customStyleEl.textContent = stylesheet;
-	}
-
-	/**
-	 * If the fallback list is forced or obsidian stylesheet detection is unsupported,
-	 * add the embedded fallback list to the callout collection.
-	 */
-	protected maybeRefreshCalloutBuiltinsWithFallback(): void {
-		const { calloutDetection } = this.settings;
-		if (!calloutDetection.obsidian) {
-			return;
-		}
-
-		if (calloutDetection.obsidianFallbackForced || !this.cssWatcher.isObsidianStylesheetSupported()) {
-			this.callouts.builtin.set(builtinCallouts);
-		}
 	}
 
 	/**
