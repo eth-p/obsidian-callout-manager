@@ -33,7 +33,9 @@ export class ManagePluginPane extends UIPane {
 		// -----------------------------------------------------------------------------------------------------
 		// Section: Callout Detection
 		// -----------------------------------------------------------------------------------------------------
-		containerEl.createEl('h2', { text: 'Callout Detection' });
+		new Setting(containerEl)
+			.setHeading()
+			.setName('Callout Detection');
 
 		new Setting(containerEl)
 			.setName('Obsidian')
@@ -94,7 +96,7 @@ export class ManagePluginPane extends UIPane {
 		// -----------------------------------------------------------------------------------------------------
 		// Section: Reset
 		// -----------------------------------------------------------------------------------------------------
-		containerEl.createEl('h2', { text: 'Reset' });
+		new Setting(containerEl).setHeading().setName('Reset');
 
 		new Setting(containerEl)
 			.setName('Reset Callout Settings')
