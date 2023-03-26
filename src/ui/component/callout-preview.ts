@@ -229,7 +229,7 @@ export class IsolatedCalloutPreviewComponent extends CalloutPreviewComponent {
 
 		// Attach to the container.
 		if (containerEl != null) {
-			IsolatedCalloutPreviewComponent.prototype.attachTo.call(this, containerEl);
+			IsolatedCalloutPreviewComponent.prototype.attachTo.call(this, containerEl as HTMLElement);
 		}
 	}
 

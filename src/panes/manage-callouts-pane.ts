@@ -7,7 +7,7 @@ import CalloutManagerPlugin from '&plugin';
 import { CalloutPreviewComponent } from '&ui/component/callout-preview';
 import { UIPane } from '&ui/pane';
 
-import { compareColor } from '../sort';
+import CalloutSearch, { Actions, Operation } from '../search';
 
 import { CreateCalloutPane } from './create-callout-pane';
 import { EditCalloutPane } from './edit-callout-pane';
@@ -22,8 +22,7 @@ export class ManageCalloutsPane extends UIPane {
 	private plugin: CalloutManagerPlugin;
 
 	private searchQuery: string;
-	private searchFilter: null | ((callout: CalloutForSearch) => SearchResult | null);
-	private previewCache: CalloutForSearch[];
+	private searchInstance: CalloutSearch | null;
 
 	private searchErrorDiv: HTMLElement;
 	private searchErrorQuery!: HTMLElement;
@@ -31,11 +30,10 @@ export class ManageCalloutsPane extends UIPane {
 	public constructor(plugin: CalloutManagerPlugin) {
 		super();
 		this.plugin = plugin;
+		this.viewOnly = false;
 
 		this.searchQuery = '';
-		this.searchFilter = null;
-		this.previewCache = [];
-		this.viewOnly = false;
+		this.searchInstance = null;
 
 		const { searchErrorDiv, searchErrorQuery } = createEmptySearchResultDiv();
 		this.searchErrorDiv = searchErrorDiv;
@@ -43,10 +41,19 @@ export class ManageCalloutsPane extends UIPane {
 	}
 
 	/**
-	 * Change the search query.
+	 * Change the search query and re-render the panel.
 	 * @param query The search query.
 	 */
 	public search(query: string): void {
+		this.setSearchQuery(query);
+		this.display();
+	}
+
+	/**
+	 * Change the search query.
+	 * @param query The search query.
+	 */
+	protected setSearchQuery(query: string): void {
 		const split = query.split(':', 2);
 		let prefix = 'id',
 			search = query;
@@ -56,12 +63,9 @@ export class ManageCalloutsPane extends UIPane {
 		}
 
 		// Set the search parameters.
-		this.searchFilter = this.prepareSearch(search, prefix);
 		this.searchQuery = query;
 		this.searchErrorQuery.textContent = search;
-
-		// Refresh the display.
-		this.display();
+		this.doSearch(search, prefix);
 	}
 
 	/**
@@ -72,106 +76,42 @@ export class ManageCalloutsPane extends UIPane {
 	 *
 	 * @returns The search filter function.
 	 */
-	protected prepareSearch(query: string, queryPrefix: string): ManageCalloutsPane['searchFilter'] {
+	protected doSearch(query: string, queryPrefix: string): void {
+		if (this.searchInstance == null) throw new Error('Not ready to search.');
+		this.searchInstance.reset();
+
 		// Search `id:` -- Search by ID.
 		if (queryPrefix === 'id') {
-			const fuzzy = prepareFuzzySearch(query.toLowerCase());
-			return (callout) => fuzzy(callout.id);
+			return this.searchInstance.search(
+				'id',
+				Operation.matches,
+				query.toLocaleLowerCase().trim(),
+				Actions.filter,
+			);
 		}
 
 		// Search `icon:` -- Search by icon.
 		if (queryPrefix === 'icon') {
-			const fuzzy = prepareFuzzySearch(query.toLowerCase());
-			return (callout) => fuzzy(callout.icon.toLowerCase());
+			return this.searchInstance.search(
+				'icon',
+				Operation.matches,
+				query.toLocaleLowerCase().trim(),
+				Actions.filter,
+			);
 		}
 
 		// Search `from:` -- Search by source.
 		if (queryPrefix === 'from') {
-			const queryLC = query.toLowerCase();
-			const queryIsBuiltin = queryLC === 'obsidian' || queryLC === 'builtin' || queryLC === 'built-in';
-			const fuzzy = prepareFuzzySearch(queryLC);
+			let from = query.toLocaleLowerCase().trim();
+			if (from === 'obsidian' || from === 'built-in') from = 'builtin';
 
-			const hasSnippetWithQueryAsId =
-				this.plugin.callouts.snippets.keys().find((id) => id.toLowerCase() === queryLC) !== undefined;
-
-			return (callout) => {
-				let result = null;
-				if (query === '') return { matches: [], score: 0 };
-
-				for (const source of callout.sources) {
-					// Special case: an exact match on the snippet ID.
-					if (hasSnippetWithQueryAsId) {
-						if (source.type === 'snippet' && source.snippet.toLowerCase() === queryLC)
-							return { matches: [], score: -1 };
-						continue;
-					}
-
-					// General cases:
-					switch (source.type) {
-						case 'builtin':
-							if (queryIsBuiltin) return { matches: [], score: -1 };
-							break;
-
-						case 'custom':
-							if (queryLC === 'custom') return { matches: [], score: -1 };
-							break;
-
-						case 'theme':
-							if (queryLC === 'theme') return { matches: [], score: -1 };
-							break;
-
-						case 'snippet': {
-							const snippetLC = source.snippet.toLowerCase();
-							if (snippetLC === queryLC) return { matches: [], score: -1 };
-
-							// Try matching fuzzily on the snippet name.
-							const fuzzily = fuzzy(snippetLC);
-							if (fuzzily != null && (result == null || fuzzily.score < result.score)) {
-								result = fuzzily;
-							}
-						}
-					}
-				}
-
-				return result;
-			};
+			return this.searchInstance.search(
+				'from',
+				Operation.matches,
+				from,
+				Actions.filter,
+			);
 		}
-
-		// Unknown prefix.
-		return () => null;
-	}
-
-	/**
-	 * Filter and sort callout previews based on the fuzzy search query.
-	 * If there is no search query, previews will be sorted based on color.
-	 *
-	 * @param previews The previews to filter and sort.
-	 * @returns The filtered and sorted previews.
-	 */
-	protected filterAndSort(previews: CalloutForSearch[]): CalloutForSearch[] {
-		const { searchFilter } = this;
-		if (searchFilter == null) {
-			return previews.sort(compareColor).reverse();
-		}
-
-		// Filter out the previews that don't match the search query.
-		const filterMapped: Array<[CalloutForSearch, SearchResult]> = [];
-		for (const preview of previews) {
-			const result = searchFilter(preview);
-			if (result != null) {
-				filterMapped.push([preview, result]);
-			}
-		}
-
-		// Sort the previews.
-		filterMapped.sort(([aPreview, aResults], [bPreview, bResults]) => {
-			const scoreDiff = bResults.score - aResults.score;
-			if (scoreDiff != 0) return scoreDiff;
-			return compareColor(aPreview, bPreview) * -1;
-		});
-
-		// Return the previews.
-		return filterMapped.map(([preview, _]) => preview);
 	}
 
 	/**
@@ -179,91 +119,84 @@ export class ManageCalloutsPane extends UIPane {
 	 * This regenerates the previews and their metadata from the list of callouts known to the plugin.
 	 */
 	protected refreshPreviews(): void {
-		const editButtonContent =
-			(this.viewOnly ? getIcon('lucide-view') : getIcon('lucide-edit')) ??
-			document.createTextNode('Edit Callout');
+		const { plugin, viewOnly } = this;
 
-		const insertButtonContent =
-			(this.viewOnly ? getIcon('lucide-view') : getIcon('lucide-forward')) ??
-			document.createTextNode('Insert Callout');
+		this.searchInstance = new CalloutSearch(plugin.callouts.values(), {
+			previewFactory: createPreviewFactory(viewOnly),
+			emptySearchIncludesAll: true,
+		});
 
-		const editButtonHandler = (evt: MouseEvent) => {
-			let id = null;
-			for (let target = evt.targetNode; target != null && id == null; target = target?.parentElement) {
-				if (target instanceof Element) {
-					id = target.getAttribute('data-callout-manager-callout');
-				}
+		this.setSearchQuery(this.searchQuery);
+	}
+
+	protected onCalloutButtonClick(evt: MouseEvent) {
+		let id = null;
+		let action = null;
+		for (let target = evt.targetNode; target != null && (id == null || action == null); target = target?.parentElement) {
+			console.log(id, action, target);
+			if (!(target instanceof Element)) continue;
+
+			// Find the callout ID.
+			if (id == null) {
+				id = target.getAttribute('data-callout-manager-callout');
 			}
 
-			if (id != null) {
-				this.nav.open(new EditCalloutPane(this.plugin, id, this.viewOnly));
+			// Find the button action.
+			if (action == null) {
+				action = target.getAttribute('data-callout-manager-action');
 			}
-		};
+		}
 
-		const insertButtonHandler = (evt: MouseEvent) => {
-			let id = null;
-			for (let target = evt.targetNode; target != null && id == null; target = target?.parentElement) {
-				if (target instanceof Element) {
-					id = target.getAttribute('data-callout-manager-callout');
-				}
+		// Do nothing if neither the callout nor action was found.
+		if (id == null || action == null) {
+			return;
+		}
+
+		// View/edit the selected callout.
+		if (action === 'edit') {
+			this.nav.open(new EditCalloutPane(this.plugin, id, this.viewOnly));
+		}
+
+		// Insert the selected callout.
+		else if (action === 'insert') {
+			const view = app.workspace.getActiveViewOfType(MarkdownView);
+
+			// Make sure the user is editing a Markdown file.
+			if (view) {
+				const cursor = view.editor.getCursor();
+				console.log("Inserting", id, cursor);
+				view.editor.replaceRange(
+					`> [!${id}]\n> Contents`,
+					cursor
+				)
+				view.editor.setCursor(cursor.line + 1, 10)
+				closeSettings(app)
 			}
-
-			if (id != null) {
-                // Insert the selected callout.
-                const view = app.workspace.getActiveViewOfType(MarkdownView);
-
-                // Make sure the user is editing a Markdown file.
-                if (view) {
-                    const cursor = view.editor.getCursor();
-                    console.log("Inserting", id, cursor);
-                    view.editor.replaceRange(
-                        `> [!${id}]\n> Contents`,
-                        cursor
-                    )
-                    view.editor.setCursor(cursor.line + 1, 10)
-                    closeSettings(app)
-                }
-			}
-		};
-
-		// Generate the cache of preview items.
-		this.previewCache = [];
-		for (const callout of this.plugin.callouts.values()) {
-			const calloutContainerEl = document.createElement('div');
-			calloutContainerEl.classList.add('calloutmanager-preview-container');
-			calloutContainerEl.setAttribute('data-callout-manager-callout', callout.id);
-
-			// Add the preview.
-			this.previewCache.push(createPreview(callout, calloutContainerEl));
-
-			// Add the edit button to the container.
-			calloutContainerEl.classList.add('calloutmanager-preview-container-with-button');
-
-			const editButton = calloutContainerEl.createEl('button');
-			editButton.appendChild(editButtonContent.cloneNode(true));
-			editButton.addEventListener('click', editButtonHandler);
-
-			const insertButton = calloutContainerEl.createEl('button');
-			insertButton.appendChild(insertButtonContent.cloneNode(true));
-			insertButton.addEventListener('click', insertButtonHandler);
 		}
 	}
 
 	/** @override */
 	public display(): void {
-		const { containerEl } = this;
-		const previews = this.filterAndSort(this.previewCache);
+		const previews = [...(this.searchInstance?.results ?? [])].reverse();
 
-		// Clear the container and re-render.
-		containerEl.empty();
+		// Create a content element to render into.
+		const contentEl = document.createDocumentFragment().createDiv();
+		contentEl.addEventListener('click', this.onCalloutButtonClick.bind(this));
+
+		// Render the previews.
 		for (const preview of previews) {
-			containerEl.appendChild(preview.calloutContainerEl);
+			contentEl.appendChild(preview.previewEl);
 		}
 
-		// If no previews, print help.
+		// If no previews, show help instead.
 		if (previews.length === 0) {
-			containerEl.appendChild(this.searchErrorDiv);
+			contentEl.appendChild(this.searchErrorDiv);
 		}
+
+		// Clear the container.
+		const { containerEl } = this;
+		containerEl.empty();
+		containerEl.appendChild(contentEl);
 	}
 
 	/** @override */
@@ -295,37 +228,45 @@ export class ManageCalloutsPane extends UIPane {
 	}
 }
 
-/**
- * A {@link CalloutPreview} with attached metadata to make it easier to filter and search.
- */
-interface CalloutForSearch {
-	icon: string;
-	id: string;
-	sources: Callout['sources'];
-	calloutContainerEl: HTMLElement;
-	preview: CalloutPreviewComponent;
+function createPreviewFactory(viewOnly: boolean): (callout: Callout) => HTMLElement {
+	const editButtonContent =
+		(viewOnly ? getIcon('lucide-view') : getIcon('lucide-edit')) ?? document.createTextNode('Edit Callout');
 
-	callout: Callout;
-	computed: compareColor.T;
-}
+	const insertButtonContent =
+		(viewOnly ? getIcon('lucide-view') : getIcon('lucide-forward')) ??
+		document.createTextNode('Insert Callout');
 
-function createPreview(callout: Callout, calloutContainerEl: HTMLElement): CalloutForSearch {
-	const { icon, id } = callout;
-	const color = getColorFromCallout(callout);
-	return {
-		sources: callout.sources,
-		icon,
-		id,
-		calloutContainerEl,
-		preview: new CalloutPreviewComponent(calloutContainerEl, {
-			id,
-			icon,
+	return (callout) => {
+		const frag = document.createDocumentFragment();
+		const calloutContainerEl = frag.createDiv({
+			cls: ['calloutmanager-preview-container'],
+			attr: {
+				['data-callout-manager-callout']: callout.id,
+			},
+		});
+
+		// Add the preview.
+		new CalloutPreviewComponent(calloutContainerEl, {
+			id: callout.id,
+			icon: callout.icon,
 			title: getTitleFromCallout(callout),
-			color: color ?? undefined,
-		}),
+			color: getColorFromCallout(callout) ?? undefined,
+		});
 
-		callout,
-		computed: compareColor.precompute(callout),
+		// Add the edit button to the container.
+		calloutContainerEl.classList.add('calloutmanager-preview-container-with-button');
+
+		const editButton = calloutContainerEl.createEl('button');
+		editButton.setAttribute('data-callout-manager-action', 'edit');
+		editButton.appendChild(editButtonContent.cloneNode(true));
+
+		// Add the insert button to the container.
+		const insertButton = calloutContainerEl.createEl('button');
+		insertButton.setAttribute('data-callout-manager-action', 'insert');
+		insertButton.appendChild(insertButtonContent.cloneNode(true));
+
+		// Return the preview container.
+		return calloutContainerEl;
 	};
 }
 
