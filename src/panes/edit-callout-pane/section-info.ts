@@ -2,7 +2,7 @@ import { App } from 'obsidian';
 import { getThemeManifest } from 'obsidian-extra';
 
 import { Callout, CalloutSource } from '&callout';
-import { getColorFromCallout } from '&callout-resolver';
+import { getColorFromCallout } from '&callout-util';
 import { toHexRGB } from '&color';
 
 export function renderInfo(app: App, callout: Callout, containerEl: HTMLElement): void {

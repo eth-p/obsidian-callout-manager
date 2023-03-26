@@ -3,10 +3,10 @@ import { getCurrentColorScheme } from 'obsidian-extra';
 
 import { Callout } from '&callout';
 import { CalloutSettings, calloutSettingsToCSS, currentCalloutEnvironment } from '&callout-settings';
+import { getTitleFromCallout } from '&callout-util';
 import CalloutManagerPlugin from '&plugin';
 
 import { IsolatedCalloutPreviewComponent } from '&ui/component/callout-preview';
-import { getTitleFromCallout } from '&callout-resolver';
 
 /**
  * A callout preview for the edit callout pane.

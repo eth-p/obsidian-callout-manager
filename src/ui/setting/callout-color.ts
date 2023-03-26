@@ -1,11 +1,10 @@
 import { ButtonComponent, ColorComponent, DropdownComponent, ExtraButtonComponent, Setting } from 'obsidian';
 
-import { RGB, parseColorRGB } from '&color';
 import { Callout } from '&callout';
+import { getColorFromCallout } from '&callout-util';
+import { RGB, parseColorRGB } from '&color';
 
 import { ResetButtonComponent } from '&ui/component/reset-button';
-
-import { getColorFromCallout } from '../../callout-resolver';
 
 import { defaultColors } from '../../default_colors.json';
 

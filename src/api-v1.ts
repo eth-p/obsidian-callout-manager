@@ -1,6 +1,6 @@
 import { Events, Plugin, RGB } from 'obsidian';
 
-import { getColorFromCallout, getTitleFromCallout } from '&callout-resolver';
+import { getColorFromCallout, getTitleFromCallout } from '&callout-util';
 import CalloutManagerPlugin from '&plugin';
 
 import { Callout, CalloutManager } from '../api';
