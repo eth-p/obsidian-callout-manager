@@ -2,11 +2,12 @@ import { ButtonComponent, MarkdownView, SearchResult, TextComponent, getIcon, pr
 
 import { Callout } from '&callout';
 import { getColorFromCallout, getTitleFromCallout } from '&callout-util';
-import { toHSV } from '&color';
 import CalloutManagerPlugin from '&plugin';
 
 import { CalloutPreviewComponent } from '&ui/component/callout-preview';
 import { UIPane } from '&ui/pane';
+
+import { compareColor } from '../sort';
 
 import { CreateCalloutPane } from './create-callout-pane';
 import { EditCalloutPane } from './edit-callout-pane';
@@ -150,7 +151,7 @@ export class ManageCalloutsPane extends UIPane {
 	protected filterAndSort(previews: CalloutForSearch[]): CalloutForSearch[] {
 		const { searchFilter } = this;
 		if (searchFilter == null) {
-			return previews.sort(comparePreviewByColor);
+			return previews.sort(compareColor).reverse();
 		}
 
 		// Filter out the previews that don't match the search query.
@@ -166,7 +167,7 @@ export class ManageCalloutsPane extends UIPane {
 		filterMapped.sort(([aPreview, aResults], [bPreview, bResults]) => {
 			const scoreDiff = bResults.score - aResults.score;
 			if (scoreDiff != 0) return scoreDiff;
-			return comparePreviewByColor(aPreview, bPreview);
+			return compareColor(aPreview, bPreview) * -1;
 		});
 
 		// Return the previews.
@@ -302,9 +303,10 @@ interface CalloutForSearch {
 	id: string;
 	sources: Callout['sources'];
 	calloutContainerEl: HTMLElement;
-	colorValid: boolean;
-	colorHue: number;
 	preview: CalloutPreviewComponent;
+
+	callout: Callout;
+	computed: compareColor.T;
 }
 
 function createPreview(callout: Callout, calloutContainerEl: HTMLElement): CalloutForSearch {
@@ -315,28 +317,16 @@ function createPreview(callout: Callout, calloutContainerEl: HTMLElement): Callo
 		icon,
 		id,
 		calloutContainerEl,
-		colorValid: color != null,
-		colorHue: color == null ? 0 : toHSV(color).h,
 		preview: new CalloutPreviewComponent(calloutContainerEl, {
 			id,
 			icon,
 			title: getTitleFromCallout(callout),
 			color: color ?? undefined,
 		}),
-	};
-}
 
-/**
- * Compares two callout previews by their hue.
- *
- * @param a The first preview.
- * @param b The second preview.
- * @returns `-1` if the a has a lower hue, `0` if they are the same, or `1` if a has a higher hue.
- */
-function comparePreviewByColor(a: CalloutForSearch, b: CalloutForSearch): number {
-	if (a.colorValid && !b.colorValid) return -1;
-	if (b.colorValid && !a.colorValid) return 1;
-	return a.colorHue - b.colorHue;
+		callout,
+		computed: compareColor.precompute(callout),
+	};
 }
 
 /**
