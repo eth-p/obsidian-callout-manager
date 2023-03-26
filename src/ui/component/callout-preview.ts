@@ -43,7 +43,7 @@ export class CalloutPreviewComponent extends Component {
 	public readonly titleEl: HTMLElement;
 	public readonly iconEl: HTMLElement;
 
-	public constructor(containerEl: HTMLElement | typeof NO_ATTACH, options: PreviewOptions) {
+	public constructor(containerEl: HTMLElement | DocumentFragment | typeof NO_ATTACH, options: PreviewOptions) {
 		super();
 		const { color, icon, id, title, content } = options;
 
@@ -136,7 +136,7 @@ export class CalloutPreviewComponent extends Component {
 	 *
 	 * @param containerEl The container to attach to.
 	 */
-	public attachTo(containerEl: HTMLElement): typeof this {
+	public attachTo(containerEl: HTMLElement | DocumentFragment): typeof this {
 		containerEl.appendChild(this.calloutEl);
 		return this;
 	}
@@ -173,7 +173,7 @@ export class IsolatedCalloutPreviewComponent extends CalloutPreviewComponent {
 
 	public readonly customStyleEl: HTMLStyleElement;
 
-	public constructor(containerEl: HTMLElement, options: IsolatedPreviewOptions) {
+	public constructor(containerEl: HTMLElement | DocumentFragment, options: IsolatedPreviewOptions) {
 		super(NO_ATTACH, options);
 
 		const frag = document.createDocumentFragment();
