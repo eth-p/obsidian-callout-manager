@@ -1,7 +1,7 @@
 import { ButtonComponent, SearchResult, TextComponent, getIcon, prepareFuzzySearch } from 'obsidian';
 
 import { Callout } from '&callout';
-import { getColorFromCallout, getTitleFromCallout } from '&callout-resolver';
+import { getColorFromCallout, getTitleFromCallout } from '&callout-util';
 import { toHSV } from '&color';
 import CalloutManagerPlugin from '&plugin';
 
