@@ -1,35 +1,39 @@
+/* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any */
 import Callout from '&callout';
 import { getColorFromCallout } from '&callout-util';
 import { HSV, toHSV } from '&color';
 
-/* eslint-disable @typescript-eslint/ban-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import { ArrayValues, Intersection } from './util/type-helpers';
 
 /**
- * An object containing a callout and some precomputed values.
+ * An object that associates some precomputed values to an object.
  * Given that sorting is not O(1), it's important that we compute values we are sorting on ahead of time.
  */
-export type Precomputed<T> = {
-	callout: Callout;
-	computed: T;
+export type Precomputed<T, C> = {
+	value: T;
+	computed: C extends void ? {} : C;
 };
 
-export type NoPrecomputed = Precomputed<{}>;
+/**
+ * Extracts the computed data type out of a {@link Precomputed} object.
+ */
+export type PrecomputedValue<T, F> = F extends Comparator<T, infer C> ? C : never;
 
-type Intersection<Ts> = (Ts extends any ? (k: Ts) => void : never) extends (k: infer I) => void ? I : never;
-type ArrayValues<Ts extends ReadonlyArray<unknown>> = Ts[number];
+/**
+ * A comparator function.
+ *
+ * This may contain a `precompute` property which will compute data necessary for the comparisons to work.
+ */
+export type Comparator<T, C> = ((a: Precomputed<T, C>, b: Precomputed<T, C>) => number) & { precompute?(value: T): C };
 
-export type Comparator<T> = ((a: Precomputed<T>, b: Precomputed<T>) => number) & { precompute?(callout: Callout): T };
-type PrecomputedOf<F> = F extends Comparator<infer T> ? T : never;
-
-type CombinedPrecomputedOf<Ts extends [...unknown[]]> = Intersection<
+type CombinedPrecomputedOf<T, Ts extends [...unknown[]]> = Intersection<
 	ArrayValues<{
-		readonly [Index in keyof Ts]: PrecomputedOf<Ts[Index]>;
+		readonly [Index in keyof Ts]: PrecomputedValue<T, Ts[Index]>;
 	}>
 >;
 
-type CombinedComparator<Fs extends Array<Comparator<any>>> = Comparator<CombinedPrecomputedOf<Fs>> & {
-	precompute(callout: Callout): CombinedPrecomputedOf<Fs>;
+type CombinedComparator<T, Fs extends Array<Comparator<T, any>>> = Comparator<T, CombinedPrecomputedOf<T, Fs>> & {
+	precompute(value: T): CombinedPrecomputedOf<T, Fs>;
 };
 
 /**
@@ -39,8 +43,8 @@ type CombinedComparator<Fs extends Array<Comparator<any>>> = Comparator<Combined
  *
  * @returns A new comparison function that encompasses all the provided ones.
  */
-export function combinedComparison<Fs extends Array<Comparator<any>>>(fns: Fs): CombinedComparator<Fs> {
-	const compare: CombinedComparator<Fs> = (a, b) => {
+export function combinedComparison<T, Fs extends Array<Comparator<T, any>> = Array<Comparator<T, any>>>(fns: Fs): CombinedComparator<T, Fs> {
+	const compare: CombinedComparator<T, Fs> = (a, b) => {
 		let delta = 0;
 		for (const compare of fns) {
 			delta = compare(a, b);
@@ -49,14 +53,14 @@ export function combinedComparison<Fs extends Array<Comparator<any>>>(fns: Fs): 
 		return delta;
 	};
 
-	compare.precompute = (callout) => {
-		const obj: Partial<CombinedPrecomputedOf<Fs>> = {};
+	compare.precompute = (value) => {
+		const obj: Partial<CombinedPrecomputedOf<T, Fs>> = {};
 		for (const fn of fns) {
 			if ('precompute' in fn) {
-				Object.assign(obj, (fn.precompute as (callout: Callout) => CombinedPrecomputedOf<Fs>)(callout));
+				Object.assign(obj, (fn.precompute as (value: T) => CombinedPrecomputedOf<T, Fs>)(value));
 			}
 		}
-		return obj as CombinedPrecomputedOf<Fs>;
+		return obj as CombinedPrecomputedOf<T, Fs>;
 	};
 
 	return compare;
@@ -66,8 +70,8 @@ export function combinedComparison<Fs extends Array<Comparator<any>>>(fns: Fs): 
  * Sort by color.
  */
 export function compareColor(
-	{ computed: { colorValid: aValid, colorHSV: aHSV } }: Precomputed<compareColor.T>,
-	{ computed: { colorValid: bValid, colorHSV: bHSV } }: Precomputed<compareColor.T>,
+	{ computed: { colorValid: aValid, colorHSV: aHSV } }: Precomputed<Callout, compareColor.T>,
+	{ computed: { colorValid: bValid, colorHSV: bHSV } }: Precomputed<Callout, compareColor.T>,
 ): number {
 	const validityDelta = (aValid ? 1 : 0) - (bValid ? 1 : 0);
 	if (validityDelta !== 0) return validityDelta;
@@ -101,6 +105,9 @@ export namespace compareColor {
 /**
  * Sort by ID.
  */
-export function compareId({ callout: { id: aId } }: NoPrecomputed, { callout: { id: bId } }: NoPrecomputed) {
+export function compareId(
+	{ value: { id: aId } }: Precomputed<Callout, void>,
+	{ value: { id: bId } }: Precomputed<Callout, void>,
+) {
 	return bId.localeCompare(aId);
 }
