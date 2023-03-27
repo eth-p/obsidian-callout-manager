@@ -1,18 +1,19 @@
 import { describe, expect, test } from '@jest/globals';
 
+import {Callout} from "&callout";
 import { Precomputed, combinedComparison, compareColor, compareId } from './sort';
 
 /**
  * Creates something for compareColor.
  */
-function C(rgb: string): Precomputed<compareColor.T> {
+function C(rgb: string): Precomputed<Callout, compareColor.T> {
 	const callout = {
 		id: '',
 		color: rgb,
 	};
 
 	return {
-		callout,
+		value: callout,
 		computed: compareColor.precompute(callout),
 	};
 }
@@ -50,14 +51,14 @@ describe('compareColor', () => {
 /**
  * Creates something for compareId.
  */
-function I(id: string): Precomputed<Record<string, never>> {
+function I(id: string): Precomputed<Callout, Record<string, never>> {
 	const callout = {
 		id,
 		color: '',
 	};
 
 	return {
-		callout,
+		value: callout,
 		computed: {},
 	};
 }
@@ -72,7 +73,7 @@ describe('compareId', () => {
 describe('combinedComparison', () => {
 	test('color then id', () => {
 		const compare = combinedComparison([compareColor, compareId]);
-		const P = (callout) => ({ callout, computed: compare.precompute(callout) });
+		const P = (value) => ({ value, computed: compare.precompute(value) });
 
 		expect(compare(P({ id: 'b', color: '255, 255, 255' }), P({ id: 'a', color: '0, 0, 0' }))).toBeGreaterThan(0);
 		expect(compare(P({ id: 'b', color: '255, 255, 255' }), P({ id: 'a', color: '255, 255, 255' }))).toBeLessThan(0);

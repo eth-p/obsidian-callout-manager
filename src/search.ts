@@ -117,7 +117,7 @@ export namespace SearchIndex {
  * This is used by the search algorithm to filter out callouts.
  */
 interface SearchItem {
-	readonly callout: Callout;
+	readonly value: Callout;
 	readonly previewEl: HTMLElement;
 
 	readonly searchMask: SearchIndex.Mask;
@@ -132,25 +132,25 @@ type IndexFactory<Keys extends string> = (callout: Readonly<Callout>, index: Sea
 /**
  * Creates a search item, added its properties to the index and generating a preview element.
  *
- * @param callout The callout associated with the search item.
+ * @param value The callout associated with the search item.
  * @param index The search index.
  * @param indexFactories One or more functions that can be used to generate a search mask.
  * @param previewFactory A function for generating a DOM tree that can be displayed for the preview.
  * @param comparePrecompute A function to precompute values needed to perform comparisons for sorting.
  */
 function createSearchItem<Keys extends string>(
-	callout: Callout,
+	value: Callout,
 	index: SearchIndex<Keys>,
 	indexFactories: ReadonlyArray<IndexFactory<Keys>>,
 	previewFactory: (callout: Readonly<Callout>) => HTMLElement,
 	comparePrecompute: (callout: Readonly<Callout>) => Record<string, unknown>,
 ): SearchItem {
 	return {
-		callout,
-		searchMask: indexFactories.reduce((a, fn) => a | fn(callout, index), 0n),
+		value: value,
+		searchMask: indexFactories.reduce((a, fn) => a | fn(value, index), 0n),
 
-		previewEl: previewFactory(callout),
-		computed: comparePrecompute(callout),
+		previewEl: previewFactory(value),
+		computed: comparePrecompute(value),
 	};
 }
 
@@ -185,7 +185,7 @@ interface Options {
 	/**
 	 * A function for comparing search results.
 	 */
-	compareFunction?: Comparator<Record<string, unknown>>;
+	compareFunction?: Comparator<Callout, Record<string, unknown>>;
 
 	/** Allows for searching by callout ID. */
 	byId?: boolean;
@@ -222,7 +222,7 @@ export default class CalloutSearch<ExtraKeys extends string | void = void> {
 	private currentSearchResults: null | CalloutSearchResult[];
 	private currentSearchScores: number[];
 
-	private compareFn: Comparator<Record<string, unknown>>;
+	private compareFn: Comparator<Callout, Record<string, unknown>>;
 	private compareWithScore: boolean;
 
 	public constructor(callouts: ReadonlyArray<Callout>, options?: CalloutSearchOptions<ExtraKeys>) {
@@ -232,7 +232,7 @@ export default class CalloutSearch<ExtraKeys extends string | void = void> {
 				indexFactory: undefined,
 				emptySearchIncludesAll: true,
 				compareWithScore: true,
-				compareFunction: combinedComparison([compareColor, compareId]),
+				compareFunction: combinedComparison<Callout>([compareColor, compareId]),
 				byId: true,
 				byIcon: true,
 				bySource: true,
@@ -260,7 +260,7 @@ export default class CalloutSearch<ExtraKeys extends string | void = void> {
 		);
 
 		// Construct variables.
-		this.compareFn = compareFunction as Comparator<Record<string, unknown>>;
+		this.compareFn = compareFunction as Comparator<Callout, Record<string, unknown>>;
 		this.compareWithScore = compareWithScore;
 
 		this.emptySearchIncludesAll = emptySearchIncludesAll;
@@ -344,7 +344,7 @@ export default class CalloutSearch<ExtraKeys extends string | void = void> {
 				return this.compareFn(a, b);
 			})
 			.map(([v]) => ({
-				callout: v.callout,
+				callout: v.value,
 				previewEl: v.previewEl,
 			}));
 
