@@ -7,7 +7,7 @@ import CalloutManagerPlugin from '&plugin';
 import { CalloutPreviewComponent } from '&ui/component/callout-preview';
 import { UIPane } from '&ui/pane';
 
-import CalloutSearch, { Actions, Operation } from '../search';
+import { CalloutSearch, CalloutSearchResult, calloutSearch } from '../callout-search';
 
 import { CreateCalloutPane } from './create-callout-pane';
 import { EditCalloutPane } from './edit-callout-pane';
@@ -22,8 +22,10 @@ export class ManageCalloutsPane extends UIPane {
 	private plugin: CalloutManagerPlugin;
 
 	private searchQuery: string;
-	private searchInstance: CalloutSearch | null;
+	private searchFn!: CalloutSearch<HTMLElement>;
+	private callouts!: ReadonlyArray<CalloutSearchResult<HTMLElement>>;
 
+	private setSearchError: undefined | ((message: string | false) => void);
 	private searchErrorDiv: HTMLElement;
 	private searchErrorQuery!: HTMLElement;
 
@@ -31,9 +33,7 @@ export class ManageCalloutsPane extends UIPane {
 		super();
 		this.plugin = plugin;
 		this.viewOnly = false;
-
 		this.searchQuery = '';
-		this.searchInstance = null;
 
 		const { searchErrorDiv, searchErrorQuery } = createEmptySearchResultDiv();
 		this.searchErrorDiv = searchErrorDiv;
@@ -45,72 +45,16 @@ export class ManageCalloutsPane extends UIPane {
 	 * @param query The search query.
 	 */
 	public search(query: string): void {
-		this.setSearchQuery(query);
+		this.doSearch(query);
 		this.display();
 	}
 
-	/**
-	 * Change the search query.
-	 * @param query The search query.
-	 */
-	protected setSearchQuery(query: string): void {
-		const split = query.split(':', 2);
-		let prefix = 'id',
-			search = query;
-		if (split.length === 2) {
-			prefix = split[0];
-			search = split[1].trim();
-		}
-
-		// Set the search parameters.
-		this.searchQuery = query;
-		this.searchErrorQuery.textContent = search;
-		this.doSearch(search, prefix);
-	}
-
-	/**
-	 * Prepares the search filter function.
-	 *
-	 * @param query The query.
-	 * @param queryPrefix The query prefix (type of query).
-	 *
-	 * @returns The search filter function.
-	 */
-	protected doSearch(query: string, queryPrefix: string): void {
-		if (this.searchInstance == null) throw new Error('Not ready to search.');
-		this.searchInstance.reset();
-
-		// Search `id:` -- Search by ID.
-		if (queryPrefix === 'id') {
-			return this.searchInstance.search(
-				'id',
-				Operation.matches,
-				query.toLocaleLowerCase().trim(),
-				Actions.filter,
-			);
-		}
-
-		// Search `icon:` -- Search by icon.
-		if (queryPrefix === 'icon') {
-			return this.searchInstance.search(
-				'icon',
-				Operation.matches,
-				query.toLocaleLowerCase().trim(),
-				Actions.filter,
-			);
-		}
-
-		// Search `from:` -- Search by source.
-		if (queryPrefix === 'from') {
-			let from = query.toLocaleLowerCase().trim();
-			if (from === 'obsidian' || from === 'built-in') from = 'builtin';
-
-			return this.searchInstance.search(
-				'from',
-				Operation.matches,
-				from,
-				Actions.filter,
-			);
+	protected doSearch(query: string): void {
+		try {
+			this.callouts = this.searchFn(query);
+			this.setSearchError?.(false);
+		} catch (ex) {
+			this.setSearchError?.((ex as Error).message);
 		}
 	}
 
@@ -118,15 +62,15 @@ export class ManageCalloutsPane extends UIPane {
 	 * Refresh the callout previews.
 	 * This regenerates the previews and their metadata from the list of callouts known to the plugin.
 	 */
-	protected refreshPreviews(): void {
+	protected invalidate(): void {
 		const { plugin, viewOnly } = this;
 
-		this.searchInstance = new CalloutSearch(plugin.callouts.values(), {
-			previewFactory: createPreviewFactory(viewOnly),
-			emptySearchIncludesAll: true,
+		this.searchFn = calloutSearch(plugin.callouts.values(), {
+			preview: createPreviewFactory(viewOnly),
 		});
 
-		this.setSearchQuery(this.searchQuery);
+		// Refresh the callout list.
+		this.doSearch(this.searchQuery);
 	}
 
 	protected onCalloutButtonClick(evt: MouseEvent) {
@@ -177,19 +121,18 @@ export class ManageCalloutsPane extends UIPane {
 
 	/** @override */
 	public display(): void {
-		const previews = [...(this.searchInstance?.results ?? [])].reverse();
-
 		// Create a content element to render into.
 		const contentEl = document.createDocumentFragment().createDiv();
 		contentEl.addEventListener('click', this.onCalloutButtonClick.bind(this));
 
 		// Render the previews.
-		for (const preview of previews) {
-			contentEl.appendChild(preview.previewEl);
+		const { callouts } = this;
+		for (const callout of callouts) {
+			contentEl.appendChild(callout.preview);
 		}
 
 		// If no previews, show help instead.
-		if (previews.length === 0) {
+		if (callouts.length === 0) {
 			contentEl.appendChild(this.searchErrorDiv);
 		}
 
@@ -203,10 +146,19 @@ export class ManageCalloutsPane extends UIPane {
 	public displayControls(): void {
 		const { controlsEl } = this;
 
-		new TextComponent(controlsEl)
+		const filter = new TextComponent(controlsEl)
 			.setValue(this.searchQuery)
 			.setPlaceholder('Filter callouts...')
 			.onChange(this.search.bind(this));
+
+		this.setSearchError = (message) => {
+			filter.inputEl.classList.toggle('mod-error', !!message);
+			if (message) {
+				filter.inputEl.setAttribute('aria-label', message);
+			} else {
+				filter.inputEl.removeAttribute('aria-label');
+			}
+		};
 
 		if (!this.viewOnly) {
 			new ButtonComponent(controlsEl)
@@ -219,12 +171,12 @@ export class ManageCalloutsPane extends UIPane {
 
 	/** @override */
 	protected restoreState(state: unknown): void {
-		this.refreshPreviews();
+		this.invalidate();
 	}
 
 	/** @override */
 	protected onReady(): void {
-		this.refreshPreviews();
+		this.invalidate();
 	}
 }
 
