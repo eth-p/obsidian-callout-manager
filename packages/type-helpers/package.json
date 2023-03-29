@@ -1,8 +1,8 @@
 {
-	"name": "@obsidian-callout-manager/search",
+	"name": "@obsidian-callout-manager/type-helpers",
 	"private": true,
 	"version": "0.0.0",
-	"description": "Searching.",
+	"description": "Type utilities and helpers.",
 	"type": "module",
 	"exports": {
 		".": "./src/index.ts"

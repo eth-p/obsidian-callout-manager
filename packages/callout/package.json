@@ -1,8 +1,8 @@
 {
-	"name": "@obsidian-callout-manager/search",
+	"name": "@obsidian-callout-manager/callout",
 	"private": true,
 	"version": "0.0.0",
-	"description": "Searching.",
+	"description": "Callout utils and type definitions.",
 	"type": "module",
 	"exports": {
 		".": "./src/index.ts"
@@ -19,7 +19,13 @@
 	},
 	"license": "MIT",
 	"prettier": "@obsidian-callout-manager/build/prettier",
-	"babel": {"extends": "@obsidian-callout-manager/build/babel"},
+	"babel": {
+		"extends": "@obsidian-callout-manager/build/babel"
+	},
+	"dependencies": {
+		"@obsidian-callout-manager/color": "=0.0.0",
+		"@obsidian-callout-manager/sort": "=0.0.0"
+	},
 	"devDependencies": {
 		"@obsidian-callout-manager/build": "=0.0.0"
 	}

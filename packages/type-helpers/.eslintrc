@@ -1,0 +1,6 @@
+{
+	"extends": "@obsidian-callout-manager",
+	"rules": {
+		"@typescript-eslint/no-explicit-any": "off" // `any` is helpful for type utilities.
+	}
+}

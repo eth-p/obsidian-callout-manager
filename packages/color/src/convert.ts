@@ -1,4 +1,4 @@
-import { RGB, RGBA, HSV, HSVA } from './types';
+import { HSV, HSVA, RGB, RGBA } from './types';
 
 /**
  * Converts a color to HSV(A).
