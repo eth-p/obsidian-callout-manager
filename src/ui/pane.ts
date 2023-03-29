@@ -133,6 +133,11 @@ declare const STYLES: `
 				background: transparent;
 			}
 		}
+
+		// Add mod-error to text field.
+		input[type='text'].mod-error {
+			border-color: var(--text-error);
+		}
 	}
 
 	// Make clickable icons not too large on mobile.
