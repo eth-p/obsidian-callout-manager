@@ -18,8 +18,8 @@
 		"stripInternal": true,
 		"noEmit": true,
 		"paths": {
-			"obsidian-callout-manager": ["./api"],
-			"&callout": ["./api/callout"],
+			"obsidian-callout-manager": ["plugin-api"],
+			"&callout": ["plugin-api/callout"],
 			"&callout-util": ["./src/callout-util"],
 			"&callout-resolver": ["./src/callout-resolver"],
 			"&callout-settings": ["./src/callout-settings"],

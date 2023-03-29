@@ -1,0 +1,25 @@
+{
+	"name": "obsidian-callout-manager",
+	"version": "1.0.1",
+	"description": "API of the Callout Manager plugin for Obsidian.md",
+	"type": "module",
+	"exports": {
+		"import": "./dist/api-esm.mjs",
+		"require": "./dist/api-cjs.js"
+	},
+	"scripts": {
+	},
+	"keywords": [
+		"obsidian.md",
+		"obsidian-plugin",
+		"obsidian-plugin-api"
+	],
+	"author": {
+		"name": "eth-p",
+		"url": "https://github.com/eth-p"
+	},
+	"license": "MIT",
+	"devDependencies": {
+		"@obsidian-callout-manager/build": "=0.0.0"
+	}
+}

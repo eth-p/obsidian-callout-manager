@@ -1,0 +1,20 @@
+{
+	"compilerOptions": {
+		"lib": ["DOM", "ES5", "ES6", "ES7", "ES2017", "ES2018", "ES2019"],
+		"allowSyntheticDefaultImports": true,
+		"resolveJsonModule": true,
+		"inlineSourceMap": true,
+		"inlineSources": true,
+		"module": "ESNext",
+		"target": "ES2020",
+		"allowJs": true,
+		"noImplicitAny": true,
+		"moduleResolution": "node",
+		"importHelpers": true,
+		"isolatedModules": true,
+		"strictNullChecks": true,
+		"strict": true,
+		"stripInternal": true,
+		"noEmit": true
+	}
+}

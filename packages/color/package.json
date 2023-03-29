@@ -1,0 +1,26 @@
+{
+	"name": "@obsidian-callout-manager/color",
+	"private": true,
+	"version": "0.0.0",
+	"description": "Color manipulation and parsing.",
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"lint": "cmbuild lint",
+		"format": "cmbuild format",
+		"test": "cmbuild test"
+	},
+	"keywords": [],
+	"author": {
+		"name": "eth-p",
+		"url": "https://github.com/eth-p"
+	},
+	"license": "MIT",
+	"prettier": "@obsidian-callout-manager/build/prettier",
+	"babel": {"extends": "@obsidian-callout-manager/build/babel"},
+	"devDependencies": {
+		"@obsidian-callout-manager/build": "=0.0.0"
+	}
+}
