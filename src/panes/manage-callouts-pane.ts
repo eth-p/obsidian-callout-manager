@@ -416,7 +416,7 @@ declare const STYLES: `
 
 		// Conver the preview into a grid.
 		display: grid;
-		grid-template-columns: 1fr var(--calloutmanager-callout-edit-buttons-size);
+		grid-template-columns: 1fr var(--calloutmanager-callout-edit-buttons-size) var(--calloutmanager-callout-edit-buttons-size);
 
 		align-items: center;
 		gap: var(--size-4-2);
