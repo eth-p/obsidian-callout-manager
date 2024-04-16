@@ -307,7 +307,7 @@ interface CalloutForSearch {
 	preview: CalloutPreviewComponent;
 }
 
-export function createPreview(callout: Callout, calloutContainerEl: HTMLElement): CalloutForSearch {
+function createPreview(callout: Callout, calloutContainerEl: HTMLElement): CalloutForSearch {
 	const { icon, id } = callout;
 	const color = getColorFromCallout(callout);
 	return {
