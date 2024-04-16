@@ -42,13 +42,9 @@ export class CalloutColorSetting extends Setting {
 
 		this.dropdownComponent = new DropdownComponent(this.controlEl).then((btn) => {
 			// If the rgb string is in the default_colors keys, then change dropdown.
-			
 			const { r, g, b } = this.getColor();
-
-
 			btn.addOptions(defaultColors)
 			btn.onChange((value: string) => {
-				console.log("Dropdown", value, btn.getValue())
 				this.setColorString(value)
 			})
 		})
@@ -56,7 +52,7 @@ export class CalloutColorSetting extends Setting {
 		this.components.push(
 			this.dropdownComponent
 		);
-
+		
 		this.components.push(
 			new ResetButtonComponent(this.controlEl).then((btn) => {
 				this.resetComponent = btn;
