@@ -113,11 +113,7 @@ export default class CalloutManagerPlugin extends Plugin {
 		this.apiReadySignal();
 
 		// Add a ribbon Icon
-		this.addRibbonIcon("lucide-gallery-vertical", "Print to console", () => {
-			console.log("Hello, you!");
-			// new InsertCalloutModal(this.app, (result) => {
-				
-			//   }).open();
+		this.addRibbonIcon("lucide-gallery-vertical", "Insert Callout", () => {
 			this.settingTab.openWithPane(new ManageCalloutsPane(this));
 		  });
 	}
