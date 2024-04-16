@@ -1,4 +1,4 @@
-import { ColorComponent, ExtraButtonComponent, Setting } from 'obsidian';
+import { ButtonComponent, ColorComponent, DropdownComponent, ExtraButtonComponent, Setting } from 'obsidian';
 
 import { RGB, parseColorRGB } from '&color';
 import { Callout } from '&callout';
@@ -7,12 +7,15 @@ import { ResetButtonComponent } from '&ui/component/reset-button';
 
 import { getColorFromCallout } from '../../callout-resolver';
 
+import { defaultColors } from '../../default_colors.json';
+
 /**
  * An Obsidian {@link Setting} for picking the color of a callout.
  */
 export class CalloutColorSetting extends Setting {
 	private readonly callout: Callout;
 	private colorComponent!: ColorComponent;
+	private dropdownComponent!: DropdownComponent;
 	private resetComponent!: ExtraButtonComponent;
 
 	private isDefault: boolean;
@@ -31,8 +34,25 @@ export class CalloutColorSetting extends Setting {
 				const { r, g, b } = this.getColor();
 				this.onChanged?.(`${r}, ${g}, ${b}`);
 			});
+			
+			
 		});
 
+		console.log("CalloutColorSetting constructor")
+
+		this.dropdownComponent = new DropdownComponent(this.controlEl).then((btn) => {
+			// If the rgb string is in the default_colors keys, then change dropdown.
+			const { r, g, b } = this.getColor();
+			btn.addOptions(defaultColors)
+			btn.onChange((value: string) => {
+				this.setColorString(value)
+			})
+		})
+
+		this.components.push(
+			this.dropdownComponent
+		);
+		
 		this.components.push(
 			new ResetButtonComponent(this.controlEl).then((btn) => {
 				this.resetComponent = btn;
@@ -77,6 +97,15 @@ export class CalloutColorSetting extends Setting {
 
 		// Update components.
 		this.colorComponent.setValueRgb(color);
+
+		// Update dropdown menu if it matches current color
+		console.log("Setting color", `${color.r}, ${color.g}, ${color.b}`, `${color.r}, ${color.g}, ${color.b}` in defaultColors)
+		if(`${color.r}, ${color.g}, ${color.b}` in defaultColors ){
+			this.dropdownComponent.setValue(`${color.r}, ${color.g}, ${color.b}`)
+		} else {
+			this.dropdownComponent.setValue("")
+		}
+
 		this.resetComponent.setDisabled(isDefault).setTooltip(isDefault ? '' : 'Reset Color');
 
 		return this;

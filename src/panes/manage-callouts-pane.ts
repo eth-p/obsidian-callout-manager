@@ -1,4 +1,4 @@
-import { ButtonComponent, SearchResult, TextComponent, getIcon, prepareFuzzySearch } from 'obsidian';
+import { ButtonComponent, MarkdownView, SearchResult, TextComponent, getIcon, prepareFuzzySearch } from 'obsidian';
 
 import { Callout } from '&callout';
 import { getColorFromCallout, getTitleFromCallout } from '&callout-resolver';
@@ -10,6 +10,7 @@ import { UIPane } from '&ui/pane';
 
 import { CreateCalloutPane } from './create-callout-pane';
 import { EditCalloutPane } from './edit-callout-pane';
+import { closeSettings } from 'obsidian-extra/unsafe';
 
 /**
  * The user interface pane for changing Callout Manager settings.
@@ -181,6 +182,10 @@ export class ManageCalloutsPane extends UIPane {
 			(this.viewOnly ? getIcon('lucide-view') : getIcon('lucide-edit')) ??
 			document.createTextNode('Edit Callout');
 
+		const insertButtonContent =
+			(this.viewOnly ? getIcon('lucide-view') : getIcon('lucide-forward')) ??
+			document.createTextNode('Insert Callout');
+
 		const editButtonHandler = (evt: MouseEvent) => {
 			let id = null;
 			for (let target = evt.targetNode; target != null && id == null; target = target?.parentElement) {
@@ -191,6 +196,32 @@ export class ManageCalloutsPane extends UIPane {
 
 			if (id != null) {
 				this.nav.open(new EditCalloutPane(this.plugin, id, this.viewOnly));
+			}
+		};
+
+		const insertButtonHandler = (evt: MouseEvent) => {
+			let id = null;
+			for (let target = evt.targetNode; target != null && id == null; target = target?.parentElement) {
+				if (target instanceof Element) {
+					id = target.getAttribute('data-callout-manager-callout');
+				}
+			}
+
+			if (id != null) {
+                // Insert the selected callout.
+                const view = app.workspace.getActiveViewOfType(MarkdownView);
+
+                // Make sure the user is editing a Markdown file.
+                if (view) {
+                    const cursor = view.editor.getCursor();
+                    console.log("Inserting", id, cursor);
+                    view.editor.replaceRange(
+                        `> [!${id}]\n> Contents`,
+                        cursor
+                    )
+                    view.editor.setCursor(cursor.line + 1, 10)
+                    closeSettings(app)
+                }
 			}
 		};
 
@@ -210,6 +241,10 @@ export class ManageCalloutsPane extends UIPane {
 			const editButton = calloutContainerEl.createEl('button');
 			editButton.appendChild(editButtonContent.cloneNode(true));
 			editButton.addEventListener('click', editButtonHandler);
+
+			const insertButton = calloutContainerEl.createEl('button');
+			insertButton.appendChild(insertButtonContent.cloneNode(true));
+			insertButton.addEventListener('click', insertButtonHandler);
 		}
 	}
 
@@ -381,7 +416,7 @@ declare const STYLES: `
 
 		// Conver the preview into a grid.
 		display: grid;
-		grid-template-columns: 1fr var(--calloutmanager-callout-edit-buttons-size);
+		grid-template-columns: 1fr var(--calloutmanager-callout-edit-buttons-size) var(--calloutmanager-callout-edit-buttons-size);
 
 		align-items: center;
 		gap: var(--size-4-2);
