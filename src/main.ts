@@ -111,6 +111,15 @@ export default class CalloutManagerPlugin extends Plugin {
 		// Signal to wake async functions waiting for the API to be ready.
 		this.api = new CalloutManagerAPIs(this);
 		this.apiReadySignal();
+
+		// Add a ribbon Icon
+		this.addRibbonIcon("lucide-gallery-vertical", "Print to console", () => {
+			console.log("Hello, you!");
+			// new InsertCalloutModal(this.app, (result) => {
+				
+			//   }).open();
+			this.settingTab.openWithPane(new ManageCalloutsPane(this));
+		  });
 	}
 
 	async loadSettings() {
