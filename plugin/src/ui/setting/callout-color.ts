@@ -1,10 +1,10 @@
 import { ColorComponent, ExtraButtonComponent, Setting } from 'obsidian';
 
-import { Callout } from '../../../plugin-api/callout';
-import { getColorFromCallout } from '&callout-util';
-import { RGB, parseColorRGB } from '&color';
+import { Callout } from '#api';
+import { getColorFromCallout } from '@obsidian-callout-manager/callout';
+import { RGB, parseColorRGB } from '@obsidian-callout-manager/color';
 
-import { ResetButtonComponent } from '&ui/component/reset-button';
+import { ResetButtonComponent } from '#ui/component/reset-button';
 
 /**
  * An Obsidian {@link Setting} for picking the color of a callout.

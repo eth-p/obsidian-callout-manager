@@ -1,10 +1,10 @@
 import { ButtonComponent, ExtraButtonComponent, Setting, getIcon } from 'obsidian';
 
-import { Callout } from '../../../plugin-api';
-import CalloutManagerPlugin from '../../main';
+import { Callout } from '#api';
+import CalloutManagerPlugin from '#plugin';
 import { ResetButtonComponent } from '../component/reset-button';
-import { SelectIconPane } from '../../panes/select-icon-pane';
-import { UIPaneNavigation } from '&ui/pane';
+import { SelectIconPane } from '#ui-panes/select-icon-pane';
+import { UIPaneNavigation } from '#ui/pane';
 
 /**
  * An Obsidian {@link Setting} for picking the icon of a callout.

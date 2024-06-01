@@ -1,4 +1,4 @@
-import { CalloutID } from '../plugin-api';
+import { CalloutID } from '#api';
 
 /**
  * Extracts a list of callout IDs from a stylesheet.

@@ -1,11 +1,11 @@
 import { Plugin } from 'obsidian';
 
-import CalloutManagerPlugin from '&plugin';
+import CalloutManagerPlugin from '#plugin';
 
-import { CalloutID, CalloutManager } from '../plugin-api';
+import { CalloutID, CalloutManager } from '#api';
 
-import { destroy, emitter } from './api-common';
-import { CalloutManagerAPI_V1 } from './api-v1';
+import { destroy, emitter } from './api-common.ts';
+import { CalloutManagerAPI_V1 } from './api-v1.ts';
 
 export class CalloutManagerAPIs {
 	private readonly handles: Map<Plugin, CalloutManagerAPI_V1>;

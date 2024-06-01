@@ -8,6 +8,13 @@
 		"import": "./dist/api-esm.mjs",
 		"require": "./dist/api-cjs.js"
 	},
+	"imports": {
+		"#api": "obsidian-callout-manager",
+		"#ui/*": "./src/ui/*",
+		"#ui-panes/*": "./src/panes/*",
+		"#plugin": "./src/main",
+		"#plugin-settings": "./src/settings"
+	},
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
 		"test": "jest",
@@ -23,7 +30,12 @@
 	},
 	"dependencies": {
 		"obsidian-extra": "^0.1.5",
-		"obsidian": "1.1.1"
+		"obsidian": "1.1.1",
+		"obsidian-callout-manager": "=1.1.0",
+		"@obsidian-callout-manager/callout": "=1.1.0",
+		"@obsidian-callout-manager/search": "=1.1.0",
+		"@obsidian-callout-manager/sort": "=1.1.0",
+		"@obsidian-callout-manager/color": "=1.1.0"
 	},
 	"devDependencies": {
 		"@obsidian-callout-manager/build": "=0.0.0"

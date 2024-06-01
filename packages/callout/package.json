@@ -1,7 +1,7 @@
 {
 	"name": "@obsidian-callout-manager/callout",
 	"private": true,
-	"version": "0.0.0",
+	"version": "1.1.0",
 	"description": "Callout utils and type definitions.",
 	"type": "module",
 	"exports": {
@@ -23,8 +23,8 @@
 		"extends": "@obsidian-callout-manager/build/babel"
 	},
 	"dependencies": {
-		"@obsidian-callout-manager/color": "=0.0.0",
-		"@obsidian-callout-manager/sort": "=0.0.0"
+		"@obsidian-callout-manager/color": "=1.1.0",
+		"@obsidian-callout-manager/sort": "=1.1.0"
 	},
 	"devDependencies": {
 		"@obsidian-callout-manager/build": "=0.0.0"

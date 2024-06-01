@@ -1,6 +1,6 @@
 import { SnippetID, ThemeID } from 'obsidian-undocumented';
 
-import { Callout, CalloutID, CalloutSource } from '../plugin-api';
+import { Callout, CalloutID, CalloutSource } from '#api';
 
 /**
  * A collection of Callout IDs.

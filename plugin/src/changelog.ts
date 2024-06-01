@@ -1,6 +1,6 @@
 import { Component, MarkdownRenderer } from 'obsidian';
 
-import Changelog from '../CHANGELOG.md';
+import Changelog from '../../CHANGELOG.md';
 
 interface ChangelogSection {
 	version: string | undefined;

@@ -1,11 +1,11 @@
 import { Events, Plugin, RGB } from 'obsidian';
 
-import { getColorFromCallout, getTitleFromCallout } from '&callout-util';
-import CalloutManagerPlugin from '&plugin';
+import { getColorFromCallout, getTitleFromCallout } from '@obsidian-callout-manager/callout';
+import CalloutManagerPlugin from '#plugin';
 
-import { Callout, CalloutManager } from '../plugin-api';
-import { CalloutManagerEvent, CalloutManagerEventListener } from '../plugin-api/events';
-import { destroy, emitter } from './api-common';
+import { Callout, CalloutManager } from '#api';
+import { CalloutManagerEvent, CalloutManagerEventListener } from '#api/events';
+import { destroy, emitter } from './api-common.ts';
 
 export class CalloutManagerAPI_V1 implements CalloutManager<true> {
 	private readonly plugin: CalloutManagerPlugin;

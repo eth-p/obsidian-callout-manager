@@ -1,4 +1,4 @@
 {
-	"extends": "@obsidian-callout-manager/build",
+	"extends": "@obsidian-callout-manager/build/tsconfig.json",
 	"include": ["src/*.ts"]
 }

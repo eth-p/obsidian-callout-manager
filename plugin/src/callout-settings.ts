@@ -2,7 +2,7 @@ import { App } from 'obsidian';
 import { getCurrentColorScheme, getCurrentThemeID } from 'obsidian-extra';
 import { ThemeID } from 'obsidian-undocumented';
 
-import { CalloutID } from '../plugin-api/callout';
+import { CalloutID } from '#api';
 
 /**
  * Gets the current environment that callouts are under.

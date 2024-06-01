@@ -6,6 +6,7 @@
 	"exports": {
 		"./prettier": "./prettier.config.js",
 		"./babel": "./babel.config.js",
+		"./eslint": "./eslint.config.js",
 		"./tsconfig.json": "./tsconfig.json"
 	},
 	"bin": {
@@ -33,5 +34,8 @@
 		"tsconfck": "^2.1.1",
 		"tsconfig-files": "^1.0.1",
 		"typescript": "4.7.4"
+	},
+	"peerDependencies": {
+		"@obsidian-callout-manager/eslint-config": "=0.0.0"
 	}
 }

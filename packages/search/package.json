@@ -1,11 +1,12 @@
 {
 	"name": "@obsidian-callout-manager/search",
 	"private": true,
-	"version": "0.0.0",
+	"version": "1.1.0",
 	"description": "Searching.",
 	"type": "module",
 	"exports": {
-		".": "./src/index.ts"
+		".": "./src/index.ts",
+		"./*": "./src/*.ts"
 	},
 	"scripts": {
 		"lint": "cmbuild lint",

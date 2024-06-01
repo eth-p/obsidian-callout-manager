@@ -1,0 +1,9 @@
+{
+	"name": "@obsidian-callout-manager/eslint-config",
+	"private": true,
+	"version": "0.0.0",
+	"description": "Eslint config, because eslint refuses to import from a module subpath.",
+	"exports": {
+		".": "./eslint.config.json"
+	}
+}

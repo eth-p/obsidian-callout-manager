@@ -2,7 +2,7 @@ import { PluginSettingTab } from 'obsidian';
 import { openPluginSettings } from 'obsidian-extra';
 import { closeSettings } from 'obsidian-extra/unsafe';
 
-import CalloutManagerPlugin from '&plugin';
+import CalloutManagerPlugin from '#plugin';
 
 import { UIPane } from './pane';
 import { UIPaneLayers } from './pane-layers';

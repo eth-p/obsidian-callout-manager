@@ -1,12 +1,12 @@
-import Callout from '../plugin-api/callout';
+import Callout from '#api';
 
-import { SearchCondition, matches } from './search/condition';
-import { filter } from './search/effect';
-import { SearchFactory } from './search/factory';
-import { casefold, combinedNormalization, trimmed, unicode } from './search/normalize';
-import { parseQuery } from './search/query';
-import { SearchColumns } from './search/search';
-import { combinedComparison, compareColor, compareId } from './sort';
+import { SearchCondition, matches } from '@obsidian-callout-manager/search';
+import { filter } from '@obsidian-callout-manager/search/effect';
+import { SearchFactory } from '@obsidian-callout-manager/search/factory';
+import { casefold, combinedNormalization, trimmed, unicode } from '@obsidian-callout-manager/search/normalize';
+import { parseQuery } from '@obsidian-callout-manager/search/query';
+import { SearchColumns } from '@obsidian-callout-manager/search/search';
+import { combinedComparison, compareColor, compareId } from '@obsidian-callout-manager/sort';
 
 type MaybePreview<Preview extends HTMLElement | never> = Preview extends HTMLElement
 	? { readonly preview: Preview }

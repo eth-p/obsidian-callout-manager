@@ -1,17 +1,17 @@
 import { Plugin } from 'obsidian';
 import { CustomStyleSheet, createCustomStyleSheet } from 'obsidian-extra';
 
-import { UISettingTab } from '&ui/paned-setting-tab';
+import { UISettingTab } from '#ui/paned-setting-tab';
 
-import type { CalloutID, CalloutManager } from '../plugin-api';
+import type { CalloutID, CalloutManager } from '#api';
 
-import { CalloutCollection } from './callout-collection';
-import { CalloutResolver } from './callout-resolver';
-import { CalloutSettings, calloutSettingsToCSS, currentCalloutEnvironment } from './callout-settings';
-import { getCalloutsFromCSS } from './css-parser';
-import StylesheetWatcher, { ObsidianStylesheet, SnippetStylesheet, ThemeStylesheet } from './css-watcher';
-import { ManageCalloutsPane } from './panes/manage-callouts-pane';
-import { ManagePluginPane } from './panes/manage-plugin-pane';
+import { CalloutCollection } from './callout-collection.ts';
+import { CalloutResolver } from './callout-resolver.ts';
+import { CalloutSettings, calloutSettingsToCSS, currentCalloutEnvironment } from './callout-settings.ts';
+import { getCalloutsFromCSS } from './css-parser.ts';
+import StylesheetWatcher, { ObsidianStylesheet, SnippetStylesheet, ThemeStylesheet } from './css-watcher.ts';
+import { ManageCalloutsPane } from '#ui-panes/manage-callouts-pane';
+import { ManagePluginPane } from '#ui-panes/manage-plugin-pane';
 import Settings, { defaultSettings, migrateSettings } from './settings';
 import { CalloutManagerAPIs } from './apis';
 

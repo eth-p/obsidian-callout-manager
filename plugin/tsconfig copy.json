@@ -1,4 +1,0 @@
-{
-	"extends": "@obsidian-callout-manager/build",
-	"include": ["src/*.ts"]
-}

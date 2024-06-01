@@ -1,8 +1,8 @@
 import { getCurrentColorScheme } from 'obsidian-extra';
 
-import { CalloutID } from '../plugin-api/callout';
+import { CalloutID } from '#api';
 
-import { IsolatedCalloutPreviewComponent } from '&ui/component/callout-preview';
+import { IsolatedCalloutPreviewComponent } from '#ui/component/callout-preview';
 
 /**
  * A class that fetches style information for callouts.
