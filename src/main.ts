@@ -135,6 +135,7 @@ export default class CalloutManagerPlugin extends Plugin {
 		switch (ss.type) {
 			case 'obsidian':
 				if (calloutDetection.obsidian === true && !calloutDetection.obsidianFallbackForced) {
+					callouts.push('note'); // Explicitly add "note", which isn't listed in `app.css`.
 					this.callouts.builtin.set(callouts);
 				}
 				return;
