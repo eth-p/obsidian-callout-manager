@@ -96,7 +96,7 @@ export class ManagePluginPane extends UIPane {
 					.onClick(() => this.nav.open(new ChangelogPane(plugin)));
 			});
 
-		const latestChanges = getSections().get(this.plugin.manifest.version);
+		const latestChanges = getSections(this.root).get(this.plugin.manifest.version);
 		if (latestChanges != null) {
 			const desc = document.createDocumentFragment();
 			desc.appendChild(latestChanges.contentsEl);

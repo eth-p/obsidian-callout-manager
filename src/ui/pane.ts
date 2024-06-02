@@ -1,3 +1,5 @@
+import { Component } from "obsidian";
+
 export interface UIPaneNavigation {
 	close(): void;
 	open(pane: UIPane<unknown>): void;
@@ -15,6 +17,7 @@ export abstract class UIPane<S = unknown> {
 	protected readonly nav!: UIPaneNavigation;
 	protected readonly containerEl!: HTMLElement;
 	protected readonly controlsEl!: HTMLElement;
+	protected readonly root!: Component;
 
 	/**
 	 * The title of the pane.
@@ -73,6 +76,7 @@ export type UIPane_FRIEND<S = unknown> = {
 	nav: UIPane<S>['nav'] | undefined;
 	containerEl: UIPane<S>['containerEl'] | undefined;
 	controlsEl: UIPane<S>['controlsEl'] | undefined;
+	root: UIPane<S>['root'] | undefined;
 	onReady: UIPane<S>['onReady'];
 	onClose: UIPane<S>['onClose'];
 	suspendState: UIPane<S>['suspendState'];

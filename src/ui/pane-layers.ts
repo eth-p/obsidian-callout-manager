@@ -1,4 +1,4 @@
-import { ButtonComponent } from 'obsidian';
+import { ButtonComponent, Component } from 'obsidian';
 
 import { UIPane, UIPaneNavigation, UIPane_FRIEND } from './pane';
 
@@ -9,6 +9,7 @@ import { UIPane, UIPaneNavigation, UIPane_FRIEND } from './pane';
 export class UIPaneLayers {
 	protected readonly navInstance: UIPaneNavigation;
 	protected readonly closeParent: () => void;
+	protected readonly root: Component;
 	protected activePane: UIPane_FRIEND | undefined;
 
 	public titleEl!: HTMLElement;
@@ -24,8 +25,9 @@ export class UIPaneLayers {
 		title: string;
 	}> = [];
 
-	public constructor(options: { close: () => void }) {
+	public constructor(root: Component, options: { close: () => void }) {
 		this.closeParent = options.close;
+		this.root = root;
 		this.navInstance = {
 			open: (pane) => this.push(pane),
 			close: () => this.pop(),
@@ -205,6 +207,12 @@ export class UIPaneLayers {
 				configurable: true,
 				enumerable: true,
 				get: attached ? () => this.controlsEl : notAttachedError,
+			},
+
+			root: {
+				configurable: true,
+				enumerable: true,
+				get: attached ? () => this.root : notAttachedError,
 			},
 		});
 	}

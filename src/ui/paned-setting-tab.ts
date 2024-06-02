@@ -25,7 +25,7 @@ export class UISettingTab extends PluginSettingTab {
 		this.createDefault = createDefault;
 
 		this.initLayer = null;
-		this.layers = new UIPaneLayers({
+		this.layers = new UIPaneLayers(plugin, {
 			close: () => closeSettings(this.app),
 		});
 	}

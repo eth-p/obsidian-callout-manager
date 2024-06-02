@@ -10,14 +10,14 @@ import { getSections } from '../changelog';
 export class ChangelogPane extends UIPane {
 	public readonly title = 'Changelog';
 	private readonly plugin: CalloutManagerPlugin;
-	private readonly changelogEl: HTMLElement;
+	private changelogEl: HTMLElement;
 
 	public constructor(plugin: CalloutManagerPlugin) {
 		super();
 		this.plugin = plugin;
 
 		// Create the changelog element.
-		const sections = getSections();
+		const sections = getSections(plugin);
 		const frag = document.createDocumentFragment();
 		this.changelogEl = frag.createDiv({ cls: 'calloutmanager-changelog' });
 
@@ -48,6 +48,8 @@ declare const STYLES: `
 	}
 
 	.calloutmanager-changelog {
+		--callout-blend-mode: normal;
+
 		details {
 			> summary::marker {
 				color: var(--text-faint);
