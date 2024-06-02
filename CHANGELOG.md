@@ -1,3 +1,8 @@
+# Version 1.1.1
+
+> [!new] Export Callouts as CSS  
+> There's now a button to copy your callout changes.
+
 # Version 1.1.0
 
 > [!new] In-App Changelogs  

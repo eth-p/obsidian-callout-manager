@@ -108,6 +108,28 @@ export class ManagePluginPane extends UIPane {
 		}
 
 		// -----------------------------------------------------------------------------------------------------
+		// Section: Export
+		// -----------------------------------------------------------------------------------------------------
+		new Setting(containerEl).setHeading().setName('Export');
+
+		new Setting(containerEl)
+			.setName('Callout Styles')
+			.setDesc('Export your custom callouts and changes as CSS.')
+			.addButton((btn) => {
+				btn.setButtonText('Copy');
+				btn.onClick(async () => {
+					btn.setDisabled(true);
+
+					try {
+						await navigator.clipboard.writeText('/* Exported Styles from Obsidian Callout Manager */\n' + this.plugin.cssApplier.css)
+						btn.setButtonText("Copied!");
+					} catch (ex) {
+						btn.setButtonText("Error");
+					}
+				});
+			});
+
+		// -----------------------------------------------------------------------------------------------------
 		// Section: Reset
 		// -----------------------------------------------------------------------------------------------------
 		new Setting(containerEl).setHeading().setName('Reset');
