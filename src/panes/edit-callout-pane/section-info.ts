@@ -3,7 +3,9 @@ import { getThemeManifest } from 'obsidian-extra';
 
 import { Callout, CalloutSource } from '&callout';
 import { getColorFromCallout } from '&callout-util';
-import { toHexRGB } from '&color';
+import { RGB, toHexRGB } from '&color';
+
+import DefaultColors from "../../default_colors.json";
 
 export function renderInfo(app: App, callout: Callout, containerEl: HTMLElement): void {
 	const frag = document.createDocumentFragment();
@@ -73,7 +75,7 @@ function appendColorInfo(el: HTMLElement, callout: Callout): void {
 	el.appendText('the color ');
 	el.createEl(
 		'code',
-		{ cls: 'calloutmanager-edit-callout--callout-color', text: toHexRGB(calloutColor) },
+		{ cls: 'calloutmanager-edit-callout--callout-color', text: describeColor(calloutColor) },
 		(colorEl) => colorEl.style.setProperty('--resolved-callout-color', callout.color),
 	);
 }
@@ -100,6 +102,18 @@ function appendSourceInfo(app: App, el: HTMLElement, source: CalloutSource): boo
 			return true;
 		}
 	}
+}
+
+function describeColor(color: RGB): string {
+	const hexString = toHexRGB(color);
+	const rgbString = `${color.r}, ${color.g}, ${color.b}`;
+
+	const namedColor = DefaultColors.defaultColors[rgbString as keyof typeof DefaultColors.defaultColors];
+	if (namedColor != null) {
+		return namedColor;
+	}
+
+	return hexString;
 }
 
 declare const STYLES: `
