@@ -77,7 +77,6 @@ export class ManageCalloutsPane extends UIPane {
 		let id = null;
 		let action = null;
 		for (let target = evt.targetNode; target != null && (id == null || action == null); target = target?.parentElement) {
-			console.log(id, action, target);
 			if (!(target instanceof Element)) continue;
 
 			// Find the callout ID.
@@ -108,7 +107,6 @@ export class ManageCalloutsPane extends UIPane {
 			// Make sure the user is editing a Markdown file.
 			if (view) {
 				const cursor = view.editor.getCursor();
-				console.log("Inserting", id, cursor);
 				view.editor.replaceRange(
 					`> [!${id}]\n> Contents`,
 					cursor

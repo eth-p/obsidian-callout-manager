@@ -84,11 +84,9 @@ export function calloutSearch<
 			if (op.text === '' || op.text == null) continue;
 
 			// Perform search.
-			console.log(op);
 			search.search(field as Columns, op.condition ?? defaultCondition, op.text, op.effect ?? filter);
 		}
 
-		console.log(search);
 		return search.results as unknown as ReadonlyArray<CalloutSearchResult<Preview>>;
 	}) as CalloutSearch<Preview>;
 }
