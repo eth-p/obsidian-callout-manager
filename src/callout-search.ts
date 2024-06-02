@@ -65,7 +65,7 @@ export function calloutSearch<
 	const search = new SearchFactory<Callout, never>(callouts)
 		.withColumn('id', 'id', standardNormalization)
 		.withColumn('icon', 'icon', standardNormalization)
-		.withColumn('source', sourceGetter, standardNormalization)
+		.withColumn('from', sourceGetter, standardNormalization)
 		.withColumn('snippet', snippetGetter, standardNormalization)
 		.withMetadata((callout) => (preview == null ? {} : { preview: preview(callout) }))
 		.withInclusiveDefaults(true)
