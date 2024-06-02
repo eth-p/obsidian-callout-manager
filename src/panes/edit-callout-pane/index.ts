@@ -11,6 +11,7 @@ import { Appearance, determineAppearanceType } from './appearance-type';
 import ComplexAppearanceEditor from './editor-complex';
 import PerSchemeAppearanceEditor from './editor-per-scheme';
 import UnifiedAppearanceEditor from './editor-unified';
+import { MiscEditor } from './misc-editor';
 import { renderInfo } from './section-info';
 import { EditCalloutPanePreview } from './section-preview';
 
@@ -27,6 +28,8 @@ export class EditCalloutPane extends UIPane {
 	private appearanceEditorContainerEl: HTMLElement;
 	private appearanceEditorEl: HTMLElement;
 	private appearanceEditor!: AppearanceEditor<Appearance>;
+	private miscEditor: MiscEditor;
+	private miscEditorContainerEl: HTMLElement;
 	private appearance!: Appearance;
 
 	public constructor(plugin: CalloutManagerPlugin, id: CalloutID, viewOnly: boolean) {
@@ -44,6 +47,19 @@ export class EditCalloutPane extends UIPane {
 
 		// Create the preview.
 		this.previewSection = new EditCalloutPanePreview(plugin, this.callout, false);
+
+		// Create the misc editor.
+		this.miscEditorContainerEl = document.createElement('div');
+		this.miscEditorContainerEl.classList.add(
+			'calloutmanager-edit-callout-section',
+			'calloutmanager-edit-callout-section--noborder',
+			'calloutmanager-edit-callout-misc',
+		);
+
+		this.miscEditor = new MiscEditor(plugin, this.callout, this.miscEditorContainerEl, viewOnly);
+		Object.defineProperty(this.miscEditor, 'nav', {
+			get: () => this.nav,
+		});
 
 		// Create the appearance editor.
 		this.appearanceEditorContainerEl = document.createElement('div');
@@ -105,11 +121,12 @@ export class EditCalloutPane extends UIPane {
 
 	/** @override */
 	public display(): void {
-		const { containerEl, previewSection, appearanceEditorContainerEl } = this;
+		const { containerEl, previewSection, appearanceEditorContainerEl, miscEditorContainerEl } = this;
 
 		containerEl.empty();
 		previewSection.attach(containerEl);
 		renderInfo(this.plugin.app, this.callout, containerEl);
+		containerEl.appendChild(miscEditorContainerEl);
 		containerEl.appendChild(appearanceEditorContainerEl);
 	}
 
@@ -148,6 +165,7 @@ export class EditCalloutPane extends UIPane {
 		this.changeAppearanceEditor(determineAppearanceType(settings));
 		this.appearanceEditorEl.empty();
 		this.appearanceEditor.render();
+		this.miscEditor.render();
 
 		await this.previewSection.changeSettings(settings);
 	}
@@ -165,6 +183,20 @@ declare const STYLES: `
 		border-top: 1px solid var(--background-modifier-border);
 		padding-top: var(--size-4-3);
 		padding-bottom: var(--size-4-6);
+	}
+
+	.calloutmanager-edit-callout-section:empty {
+		display: none;
+	}
+
+	.calloutmanager-edit-callout-section--noborder {
+		border-top: none;
+	}
+
+	.calloutmanager-edit-callout-section .setting-item {
+		.setting-item-description p {
+			margin: 0;
+		}
 	}
 
 	.calloutmanager-edit-callout-section h2 {

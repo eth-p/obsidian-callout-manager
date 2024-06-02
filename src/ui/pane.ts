@@ -113,7 +113,8 @@ declare const STYLES: `
 		}
 
 		// Make invalid text boxes look invalid.
-		input:invalid:not(:placeholder-shown) {
+		input:invalid:not(:placeholder-shown),
+		input.invalid {
 			border-color: var(--text-error);
 		}
 

@@ -1,8 +1,10 @@
-import { Setting } from 'obsidian';
+import { Setting, TextComponent } from 'obsidian';
 
 import CalloutManagerPlugin from '&plugin';
 
 import { UIPane } from '&ui/pane';
+
+import { ValiditySet } from '../util/validity-set';
 
 import { EditCalloutPane } from './edit-callout-pane';
 
@@ -12,20 +14,22 @@ export class CreateCalloutPane extends UIPane {
 
 	private btnCreate: HTMLButtonElement;
 	private fieldId: Setting;
-	private fieldIdEl!: HTMLInputElement;
+	private fieldIdComponent!: TextComponent;
+	private validity: ValiditySet;
 
 	public constructor(plugin: CalloutManagerPlugin) {
 		super();
 		this.plugin = plugin;
+		this.validity = new ValiditySet(ValiditySet.AllValid);
 
 		const btnCreate = (this.btnCreate = document.createElement('button'));
 		btnCreate.textContent = 'Create';
 		btnCreate.addEventListener('click', (evt) => {
-			if (!this.areInputsValid()) {
+			if (!this.validity.valid) {
 				return;
 			}
 
-			const id = this.fieldIdEl.value;
+			const id = this.fieldIdComponent.getValue();
 			this.plugin.createCustomCallout(id);
 			this.nav.replace(new EditCalloutPane(this.plugin, id, false));
 		});
@@ -35,23 +39,15 @@ export class CreateCalloutPane extends UIPane {
 			.setName('Callout Name')
 			.setDesc('This is how you will refer to your callout in Markdown.')
 			.addText((cmp) => {
-				cmp.setPlaceholder('my-awesome-callout')
-					.onChange(() => this.validateInputs())
-					.then(({ inputEl }) => (this.fieldIdEl = inputEl))
-					.then(({ inputEl }) => inputEl.setAttribute('pattern', '[a-z-]{1,}'))
-					.then(({ inputEl }) => inputEl.setAttribute('required', 'required'));
+				this.fieldIdComponent = cmp;
+				cmp.setPlaceholder('my-awesome-callout');
+
+				makeTextComponentValidateCalloutID(cmp, 'id', this.validity);
 			});
 
-		this.validateInputs();
-	}
-
-	protected validateInputs() {
-		this.btnCreate.disabled = !this.areInputsValid();
-	}
-
-	protected areInputsValid() {
-		if (!this.fieldIdEl.validity.valid) return false;
-		return true;
+		this.validity.onChange((valid) => {
+			this.btnCreate.disabled = !valid;
+		});
 	}
 
 	/** @override */
@@ -61,4 +57,20 @@ export class CreateCalloutPane extends UIPane {
 		containerEl.appendChild(this.fieldId.settingEl);
 		containerEl.createDiv().appendChild(this.btnCreate);
 	}
+}
+
+export function makeTextComponentValidateCalloutID(cmp: TextComponent, id: string, vs: ValiditySet): void {
+	cmp.then(({ inputEl }) => {
+		const update = vs.addSource(id);
+
+		inputEl.setAttribute('pattern', '^[a-z\\-]{1,}$');
+		inputEl.setAttribute('required', 'required');
+		inputEl.addEventListener('change', onChange);
+		inputEl.addEventListener('input', onChange);
+
+		update(inputEl.validity.valid);
+		function onChange() {
+			update(inputEl.validity.valid);
+		}
+	});
 }

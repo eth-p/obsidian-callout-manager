@@ -1,4 +1,4 @@
-import { ButtonComponent, MarkdownView, SearchResult, TextComponent, getIcon, prepareFuzzySearch } from 'obsidian';
+import { ButtonComponent, MarkdownView, TextComponent, getIcon } from 'obsidian';
 
 import { Callout } from '&callout';
 import { getColorFromCallout, getTitleFromCallout } from '&callout-util';

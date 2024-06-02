@@ -5,6 +5,7 @@ import { UISettingTab } from '&ui/paned-setting-tab';
 
 import type { CalloutID, CalloutManager } from '../api';
 
+import { CalloutManagerAPIs } from './apis';
 import { CalloutCollection } from './callout-collection';
 import { CalloutResolver } from './callout-resolver';
 import { CalloutSettings, calloutSettingsToCSS, currentCalloutEnvironment } from './callout-settings';
@@ -13,7 +14,6 @@ import StylesheetWatcher, { ObsidianStylesheet, SnippetStylesheet, ThemeStyleshe
 import { ManageCalloutsPane } from './panes/manage-callouts-pane';
 import { ManagePluginPane } from './panes/manage-plugin-pane';
 import Settings, { defaultSettings, migrateSettings } from './settings';
-import { CalloutManagerAPIs } from './apis';
 
 export default class CalloutManagerPlugin extends Plugin {
 	public settings!: Settings;
@@ -25,7 +25,7 @@ export default class CalloutManagerPlugin extends Plugin {
 
 	public api!: CalloutManagerAPIs;
 	private apiReadySignal!: () => void;
-	private apiReadyWait = new Promise((resolve, reject) => this.apiReadySignal = resolve as () => void);
+	private apiReadyWait = new Promise((resolve, reject) => (this.apiReadySignal = resolve as () => void));
 
 	public settingTab!: UISettingTab;
 
@@ -111,9 +111,9 @@ export default class CalloutManagerPlugin extends Plugin {
 		this.apiReadySignal();
 
 		// Add a ribbon Icon
-		this.addRibbonIcon("lucide-gallery-vertical", "Insert Callout", () => {
+		this.addRibbonIcon('lucide-gallery-vertical', 'Insert Callout', () => {
 			this.settingTab.openWithPane(new ManageCalloutsPane(this));
-		  });
+		});
 	}
 
 	async loadSettings() {
@@ -205,6 +205,39 @@ export default class CalloutManagerPlugin extends Plugin {
 		callouts.custom.add(id);
 		this.saveCustomCallouts();
 		this.api.emitEventForCalloutChange(id);
+	}
+
+	/**
+	 * Rename a custom callout.
+	 *
+	 * @param oldId The old callout ID.
+	 * @param newId The new callout ID.
+	 * @throws If the callout has any other sources than "custom".
+	 * @throws If the old ID does not exist.
+	 * @throws If the new ID already exists.
+	 */
+	public renameCustomCallout(oldId: CalloutID, newId: CalloutID): void {
+		const { callouts, settings } = this;
+
+		const callout = callouts.get(oldId);
+		if (callout == null) throw new Error(`Callout '${oldId}' does not exist.`);
+		if (callouts.get(newId) != null) throw new Error(`Callout '${newId}' already exists.`);
+		if (callout.sources.length !== 1 || callout.sources[0].type !== 'custom') {
+			throw new Error(`Cannot rename non-custom callout '${oldId}'.`);
+		}
+
+		// Move the settings over to the new ID.
+		callouts.custom.delete(oldId);
+		callouts.custom.add(newId);
+		settings.callouts.custom = callouts.custom.keys();
+		settings.callouts.settings[newId] = settings.callouts.settings[oldId];
+		delete settings.callouts.settings[oldId];
+
+		// Save the settings and emit events.
+		this.applyStyles();
+		this.saveCustomCallouts();
+		this.api.emitEventForCalloutChange(oldId);
+		this.api.emitEventForCalloutChange(newId);
 	}
 
 	/**
@@ -320,7 +353,11 @@ export default class CalloutManagerPlugin extends Plugin {
 	 *
 	 * @internal
 	 */
-	public async newApiHandle(version: 'v1', consumerPlugin: Plugin | undefined, cleanupFunc: () => void): Promise<CalloutManager> {
+	public async newApiHandle(
+		version: 'v1',
+		consumerPlugin: Plugin | undefined,
+		cleanupFunc: () => void,
+	): Promise<CalloutManager> {
 		await this.apiReadyWait;
 		return this.api.newHandle(version, consumerPlugin, cleanupFunc);
 	}
