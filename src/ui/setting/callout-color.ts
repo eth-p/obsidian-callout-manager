@@ -1,4 +1,4 @@
-import { ButtonComponent, ColorComponent, DropdownComponent, ExtraButtonComponent, Setting } from 'obsidian';
+import { ColorComponent, DropdownComponent, ExtraButtonComponent, Setting } from 'obsidian';
 
 import { Callout } from '&callout';
 import { getColorFromCallout } from '&callout-util';
@@ -35,19 +35,15 @@ export class CalloutColorSetting extends Setting {
 			});
 		});
 
-
-		this.dropdownComponent = new DropdownComponent(this.controlEl).then((btn) => {
+		this.dropdownComponent = new DropdownComponent(this.controlEl).then((dropdown) => {
 			// If the rgb string is in the default_colors keys, then change dropdown.
-			const { r, g, b } = this.getColor();
-			btn.addOptions(defaultColors)
-			btn.onChange((value: string) => {
-				this.setColorString(value)
-			})
-		})
+			dropdown.addOptions(defaultColors);
+			dropdown.onChange((value: string) => {
+				this.setColorString(value);
+			});
+		});
 
-		this.components.push(
-			this.dropdownComponent
-		);
+		this.components.push(this.dropdownComponent);
 
 		this.components.push(
 			new ResetButtonComponent(this.controlEl).then((btn) => {
@@ -95,10 +91,10 @@ export class CalloutColorSetting extends Setting {
 		this.colorComponent.setValueRgb(color);
 
 		// Update dropdown menu if it matches current color
-		if(`${color.r}, ${color.g}, ${color.b}` in defaultColors ){
-			this.dropdownComponent.setValue(`${color.r}, ${color.g}, ${color.b}`)
+		if (`${color.r}, ${color.g}, ${color.b}` in defaultColors) {
+			this.dropdownComponent.setValue(`${color.r}, ${color.g}, ${color.b}`);
 		} else {
-			this.dropdownComponent.setValue("")
+			this.dropdownComponent.setValue('');
 		}
 
 		this.resetComponent.setDisabled(isDefault).setTooltip(isDefault ? '' : 'Reset Color');
