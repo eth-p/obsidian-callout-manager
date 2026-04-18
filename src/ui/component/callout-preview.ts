@@ -437,5 +437,6 @@ const SHADOW_DOM_RESET_STYLES = `
 /* Use transparent background color. */
 body {
 	background-color: transparent !important;
+	contain: none;
 }
 `;
