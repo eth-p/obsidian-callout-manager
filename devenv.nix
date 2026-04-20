@@ -28,17 +28,18 @@
           return $?
         fi
 
-        src_hash=$(sha256sum "$1" | cut -d' ' -f1)
-        dst_hash=$(sha256sum "$2" | cut -d' ' -f2)
+        src_hash=$(sed -E '/^\/\/# sourceMappingURL/d' "$1" | sha256sum | cut -d' ' -f1)
+        dst_hash=$(sed -E '/^\/\/# sourceMappingURL/d' "$2" | sha256sum | cut -d' ' -f1)
         if [[ "$src_hash" != "$dst_hash" ]]; then
           cp -a "$1" "$2"
+          echo "Updated $1"
         fi
       }
 
       mkdir -p "$PLUGIN_PATH"
-      cp manifest.json "$PLUGIN_PATH/manifest.json"
-      cp dist/main.js "$PLUGIN_PATH/main.js"
-      cp dist/styles.css "$PLUGIN_PATH/styles.css"
+      install_file manifest.json "$PLUGIN_PATH/manifest.json"
+      install_file dist/main.js "$PLUGIN_PATH/main.js"
+      install_file dist/styles.css "$PLUGIN_PATH/styles.css"
     '';
   };
 
