@@ -63,7 +63,7 @@ export function makeTextComponentValidateCalloutID(cmp: TextComponent, id: strin
 	cmp.then(({ inputEl }) => {
 		const update = vs.addSource(id);
 
-		inputEl.setAttribute('pattern', '^[a-z\\-]{1,}$');
+		inputEl.setAttribute('pattern', '^[\p{L}\p{M}\\-]+$');
 		inputEl.setAttribute('required', 'required');
 		inputEl.addEventListener('change', onChange);
 		inputEl.addEventListener('input', onChange);
