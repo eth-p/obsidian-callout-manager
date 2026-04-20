@@ -121,6 +121,7 @@ declare const STYLES: `
 
 		body.is-phone & {
 			background-color: var(--background-primary);
+			margin-top: 120px;
 		}
 	}
 

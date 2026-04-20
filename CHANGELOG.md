@@ -8,6 +8,9 @@
 >
 > Thank you, [**@alythobani**](https://github.com/alythobani)!
 
+> [!fix] Settings Pane (Mobile)  
+> It's moved slightly to accomodate the updated Obsidian mobile layout.
+
 # Version 1.1.0
 
 > [!new] In-App Changelogs  
