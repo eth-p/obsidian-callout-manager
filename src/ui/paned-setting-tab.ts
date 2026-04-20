@@ -1,4 +1,4 @@
-import { PluginSettingTab } from 'obsidian';
+import { PluginSettingTab, ButtonComponent } from 'obsidian';
 import { openPluginSettings } from 'obsidian-extra';
 import { closeSettings } from 'obsidian-extra/unsafe';
 
@@ -61,11 +61,14 @@ export class UISettingTab extends PluginSettingTab {
 		layers.containerEl = layers.scrollEl.createDiv({ cls: 'calloutmanager-setting-tab-content' });
 
 		// Create a close button, since the native one is covered.
-		controlsEl.createDiv({ cls: 'modal-close-button' }, (closeButtonEl) => {
-			closeButtonEl.addEventListener('click', (ev) => {
-				if (!ev.isTrusted) return;
-				closeSettings(this.app);
-			});
+		const closeBtn = new ButtonComponent(controlsEl);
+		closeBtn.setIcon("lucide-x");
+		closeBtn.buttonEl.classList.add('modal-close-button');
+		closeBtn.buttonEl.classList.add('mod-raised');
+		closeBtn.buttonEl.classList.add('clickable-icon');
+		closeBtn.onClick((ev) => {
+			if (!ev.isTrusted) return;
+			closeSettings(this.app);
 		});
 
 		// Clear the layers.
