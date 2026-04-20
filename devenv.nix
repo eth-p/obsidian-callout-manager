@@ -58,7 +58,9 @@
       trap cleanup EXIT
 
       # Install the reloader.
-      cp -r utils/dev-reloader "$RELOADER_PATH"
+      mkdir -p "$RELOADER_PATH"
+      cp utils/dev-reloader/main.js "$RELOADER_PATH/main.js"
+      cp utils/dev-reloader/manifest.json "$RELOADER_PATH/manifest.json"
 
       # Start watching for build output changes.
       ({
