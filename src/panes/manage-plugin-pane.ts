@@ -211,8 +211,7 @@ function withConfirm(callback: (btn: ButtonComponent) => any): (btn: ButtonCompo
 
 declare const STYLES: `
 	.calloutmanager-latest-changes {
-		padding: 0.75em 0;
-    	border-top: 1px solid var(--background-modifier-border);
+		padding: var(--size-4-4);
 
 		.calloutmanager-changelog-section {
 			> :first-child { margin-top: 0; }

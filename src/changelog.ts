@@ -91,6 +91,7 @@ declare const STYLES: `
 
 		> .callout-content {
 			margin-left: calc(18px + 0.25em);
+			overflow-y: hidden;
 		}
 
 		> .callout-content > :first-child {
