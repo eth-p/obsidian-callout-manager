@@ -1,12 +1,18 @@
 const obsidian = require('obsidian');
 const { Plugin, Notice } = obsidian;
 
-const RELOAD_DELAY_MS = 5000;
-const RELOAD_FILES = new Set([
+const FULL_RELOAD_DELAY_MS = 5000;
+const FULL_RELOAD_FILES = new Set([
 	'main.js',
 	'manifest.json',
+]);
+
+const STYLE_RELOAD_DELAY_MS = 50;
+const STYLE_RELOAD_FILES = new Set([
 	'styles.css',
 ]);
+
+const overriddenStylesEl = Symbol("Reloader-managed styles");
 
 class PluginReloader {
 	constructor(app, id, dir) {
@@ -16,16 +22,23 @@ class PluginReloader {
 
 		this.isWatching = false;
 		this.isReloadPending = false;
-		this._onChangeTimeout = null;
+		this._fullReloadTimeout = null;
+		this._styleReloadTimeout = null;
 		this._notice = null;
 		this._noticeMessageLineEl = null;
 		this._noticeHideTimeout = null;
+		this._stylesRemoved = false;
+		this._stylesEl = null;
 
 		this.onChange = this.onChange.bind(this);
 	}
 
+	get plugin() {
+		return this.app.plugins.plugins[this.id];
+	}
+
 	get pluginName() {
-		return this.app.plugins.plugins[this.id]?.manifest?.name ?? this.id;
+		return this.plugin?.manifest?.name ?? this.id;
 	}
 
 	async startWatching() {
@@ -55,10 +68,58 @@ class PluginReloader {
 		await this.app.plugins.loadPlugin(this.id);
 	}
 
+	async reloadStyles() {
+		const plugin = this.plugin;
+
+		// Remove the <style> created by Obsidian and replace it with
+		// one created by this plugin.
+		if (plugin[overriddenStylesEl] == null) {
+			this._removeObsidianManagedStyles();
+			plugin[overriddenStylesEl] = document.head.createEl('style');
+			plugin.register(() => {
+				plugin[overriddenStylesEl].detach();
+			})
+		}
+
+		const newStylesFile = this.app.vault.adapter.path.join(this.dir, "styles.css");
+		const newStyles = await this.app.vault.adapter.read(newStylesFile);
+		plugin[overriddenStylesEl].textContent = newStyles;
+	}
+
+	// This is a terrible hack, but there's no way to get a reference to the
+	// <style> created by Obsidian, nor is there a guaranteed way to identify
+	// the `register()` handler used to remove that <style> element.
+	//
+	// We just have to make do with matching it based on the function's source
+	// string and likely position in the list.
+	_removeObsidianManagedStyles() {
+		const pattern = /^function\(\)\{return [a-z]\.detach\(\)\}$/;
+		const cleanupFuncs = this.plugin._events;
+		for (let i = cleanupFuncs.length - 1; i >= 0; i--) {
+			const func = cleanupFuncs[i];
+			if (pattern.test(func.toString())) {
+				func();
+				cleanupFuncs[i] = () => {};
+				return;
+			}
+		}
+
+		console.warn(`Could not remove styles for plugin ${this.id}.`);
+	}
+
 	onChange(_, file) {
-		if (!RELOAD_FILES.has(file)) return;
-		if (this._onChangeTimeout != null) {
-			clearTimeout(this._onChangeTimeout);
+		if (FULL_RELOAD_FILES.has(file)) {
+			this._debouncedFullReload();
+		}
+
+		if (STYLE_RELOAD_FILES.has(file)) {
+			this._debouncedStyleReload();
+		}
+	}
+
+	_debouncedFullReload() {
+		if (this._fullReloadTimeout != null) {
+			clearTimeout(this._fullReloadTimeout);
 		}
 
 		if (!this.isReloadPending) {
@@ -66,8 +127,8 @@ class PluginReloader {
 			this._updateNotice('Changed and will be reloaded soon.');
 		}
 
-		this._onChangeTimeout = setTimeout(() => {
-			this._onChangeTimeout = null;
+		this._fullReloadTimeout = setTimeout(() => {
+			this._fullReloadTimeout = null;
 			this.isReloadPending = false;
 			(async () => {
 				this._updateNotice('Is reloading...');
@@ -80,7 +141,24 @@ class PluginReloader {
 					console.error(`Could not reload ${this.id}:`, e);
 				}
 			})();
-		}, RELOAD_DELAY_MS);
+		}, FULL_RELOAD_DELAY_MS);
+	}
+
+	_debouncedStyleReload() {
+		if (this._styleReloadTimeout != null) {
+			clearTimeout(this._styleReloadTimeout);
+		}
+
+		this._styleReloadTimeout = setTimeout(() => {
+			this._styleReloadTimeout = null;
+			(async () => {
+				try {
+					await this.reloadStyles()
+				} catch (e) {
+					console.error(`Could not reload styles of ${this.id}:`, e);
+				}
+			})();
+		}, STYLE_RELOAD_DELAY_MS);
 	}
 
 	_updateNotice(msg) {
