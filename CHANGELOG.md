@@ -3,6 +3,11 @@
 > [!new] Export Callouts as CSS  
 > There's now a button to copy your callout changes.
 
+> [!fix] Callout Previews  
+> Previews are back!
+>
+> Thank you, [**@alythobani**](https://github.com/alythobani)!
+
 # Version 1.1.0
 
 > [!new] In-App Changelogs  
