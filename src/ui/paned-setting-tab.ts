@@ -124,7 +124,7 @@ declare const STYLES: `
 
 		body.is-phone & {
 			background-color: var(--background-primary);
-			margin-top: 120px;
+			margin-top: var(--modal-header-height);
 		}
 	}
 
@@ -218,6 +218,10 @@ declare const STYLES: `
 	// The scroll container for the setting tab.
 	.calloutmanager-setting-tab-viewport {
 		flex: 1 2 auto;
+
+		body.is-phone & {
+			--modal-header-height: var(--size-2-1);
+		}
 
 		// Enable scrolling.
 		overflow-y: auto;
