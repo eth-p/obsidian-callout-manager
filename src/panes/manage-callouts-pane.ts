@@ -102,7 +102,7 @@ export class ManageCalloutsPane extends UIPane {
 
 		// Insert the selected callout.
 		else if (action === 'insert') {
-			const view = app.workspace.getActiveViewOfType(MarkdownView);
+			const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
 
 			// Make sure the user is editing a Markdown file.
 			if (view) {
@@ -112,7 +112,7 @@ export class ManageCalloutsPane extends UIPane {
 					cursor
 				)
 				view.editor.setCursor(cursor.line + 1, 10)
-				closeSettings(app)
+				closeSettings(this.plugin.app)
 			}
 		}
 	}

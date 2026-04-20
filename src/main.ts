@@ -38,7 +38,7 @@ export default class CalloutManagerPlugin extends Plugin {
 		// Create the callout resolver.
 		// This needs to be created as early as possible to ensure the Obsidian stylesheet within the shadow DOM has loaded.
 		// We also register an event to ensure that it tracks any changes to the loaded styles.
-		this.calloutResolver = new CalloutResolver();
+		this.calloutResolver = new CalloutResolver(this.app);
 		this.register(() => this.calloutResolver.unload());
 
 		// Create the callout collection.

@@ -3,16 +3,19 @@ import { getCurrentColorScheme } from 'obsidian-extra';
 import { CalloutID } from '&callout';
 
 import { IsolatedCalloutPreviewComponent } from '&ui/component/callout-preview';
+import { App } from 'obsidian';
 
 /**
  * A class that fetches style information for callouts.
  * This keeps a Shadow DOM within the page document and uses getComputedStyles to get CSS variables.
  */
 export class CalloutResolver {
+	private readonly obsidianApp: App;
 	private readonly hostElement: HTMLElement;
 	private readonly calloutPreview: IsolatedCalloutPreviewComponent;
 
-	public constructor() {
+	public constructor(app: App) {
+		this.obsidianApp = app;
 		this.hostElement = document.body.createDiv({
 			cls: 'calloutmanager-callout-resolver',
 		});
@@ -35,7 +38,7 @@ export class CalloutResolver {
 	 * @param styles The new style elements to use.
 	 */
 	public reloadStyles(): void {
-		this.calloutPreview.setColorScheme(getCurrentColorScheme(app));
+		this.calloutPreview.setColorScheme(getCurrentColorScheme(this.obsidianApp));
 		this.calloutPreview.updateStyles();
 		this.calloutPreview.removeStyles((el) => el.getAttribute('data-callout-manager') === 'style-overrides');
 	}

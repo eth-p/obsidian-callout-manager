@@ -36,7 +36,7 @@ export class ValiditySet {
 			callback(this._lastReducedValidity);
 		}
 
-		return this._emitter.on('change', callback);
+		return this._emitter.on('change', callback as (...data: unknown[]) => void);
 	}
 
 	/**

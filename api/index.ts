@@ -44,7 +44,7 @@ export async function getApi(plugin?: Plugin): Promise<CalloutManager | undefine
 	};
 
 	// Check if the plugin is installed and enabled.
-	const app = (plugin?.app ?? globalThis.app) as ObsidianAppWithPlugins;
+	const app = (plugin?.app ?? (globalThis as any).app) as ObsidianAppWithPlugins;
 	if (!isInstalled(app)) {
 		return undefined;
 	}
@@ -68,7 +68,7 @@ export async function getApi(plugin?: Plugin): Promise<CalloutManager | undefine
  */
 export function isInstalled(app?: App) {
 	// Check if the plugin is available and loaded.
-	const plugins = ((app ?? globalThis.app) as ObsidianAppWithPlugins).plugins;
+	const plugins = ((app ?? (globalThis as any).app) as ObsidianAppWithPlugins).plugins;
 	return PLUGIN_ID in plugins.manifests && plugins.enabledPlugins.has(PLUGIN_ID);
 }
 
