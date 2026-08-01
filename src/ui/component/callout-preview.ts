@@ -126,7 +126,7 @@ export class CalloutPreviewComponent extends Component {
 			return this;
 		}
 
-		calloutEl.style.setProperty('--callout-color', `${color.r}, ${color.g}, ${color.b}`);
+		calloutEl.style.setProperty('--callout-color', `rgb(${color.r}, ${color.g}, ${color.b})`);
 		return this;
 	}
 

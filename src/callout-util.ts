@@ -1,5 +1,5 @@
 import Callout from '&callout';
-import { RGB, parseColorRGB } from '&color';
+import { RGB, parseColor } from '&color';
 
 /**
  * Gets the color (as a {@link RGB}) from a {@link Callout}.
@@ -9,7 +9,7 @@ import { RGB, parseColorRGB } from '&color';
  * @returns The callout's color, or null if not valid.
  */
 export function getColorFromCallout(callout: Callout): RGB | null {
-	return parseColorRGB(`rgb(${callout.color})`);
+	return parseColor(callout.color);
 }
 
 /**
