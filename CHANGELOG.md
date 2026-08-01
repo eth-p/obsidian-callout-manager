@@ -1,3 +1,8 @@
+# Version 1.1.2
+
+> [!fix] Quick Fix for Obsidian 1.13  
+> Thank you to everyone who reported issues after upgrading to Obsidian 1.13. This release should fix any immediate issues.
+
 # Version 1.1.1
 
 > [!new] Export Callouts as CSS  
