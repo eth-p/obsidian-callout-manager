@@ -105,25 +105,25 @@ declare const STYLES: `
 
 	.callout[data-calloutmanager-changelog-callout="new"] {
 		--callout-icon: lucide-plus;
-		--callout-color: 30, 160, 30;
+		--callout-color: rgb(30, 160, 30);
 		.theme-dark & {
-			--callout-color: 60, 250, 60;
+			--callout-color: rgb(60, 250, 60);
 		}
 	}
 
 	.callout[data-calloutmanager-changelog-callout="fix"] {
 		--callout-icon: lucide-wrench;
-		--callout-color: 128, 128, 128;
+		--callout-color: rgb(128, 128, 128);
 		.theme-dark & {
-			--callout-color: 180, 180, 180;
+			--callout-color: rgb(180, 180, 180);
 		}
 	}
 
 	.callout[data-calloutmanager-changelog-callout="change"] {
 		--callout-icon: lucide-edit-3;
-		--callout-color: 10, 170, 210;
+		--callout-color: rgb(10, 170, 210);
 		.theme-dark & {
-			--callout-color: 60, 157, 210;
+			--callout-color: rgb(60, 157, 210);
 		}
 	}
 
