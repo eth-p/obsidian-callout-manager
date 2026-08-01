@@ -61,7 +61,7 @@ function createManifest(packageJsonData) {
 }
 
 async function updateVersions(packageJsonData, file) {
-	const versions = (await access(file).catch(() => false)) ? JSON.parse(await readFile(file, 'utf8')) : {};
+	const versions = (await access(file).then(() => true).catch(() => false)) ? JSON.parse(await readFile(file, 'utf8')) : {};
 
 	versions[packageJsonData.version] = packageJsonData.obsidianPlugin.minAppVersion;
 
