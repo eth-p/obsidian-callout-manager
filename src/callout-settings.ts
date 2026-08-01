@@ -57,7 +57,7 @@ export function calloutSettingsToStyles(
 
 		// Build the styles.
 		const { changes } = setting;
-		if (changes.color != null) styles.push(`--callout-color: ${changes.color}`);
+		if (changes.color != null) styles.push(`--callout-color: rgb(${changes.color})`);
 		if (changes.icon != null) styles.push(`--callout-icon: ${changes.icon}`);
 		if (changes.customStyles != null) styles.push(changes.customStyles);
 	}
