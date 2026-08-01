@@ -17,7 +17,7 @@ export class ChangelogPane extends UIPane {
 		this.plugin = plugin;
 
 		// Create the changelog element.
-		const sections = getSections(plugin);
+		const sections = getSections(plugin.app, plugin);
 		const frag = document.createDocumentFragment();
 		this.changelogEl = frag.createDiv({ cls: 'calloutmanager-changelog' });
 

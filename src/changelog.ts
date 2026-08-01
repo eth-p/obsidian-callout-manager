@@ -1,4 +1,4 @@
-import { Component, MarkdownRenderer } from 'obsidian';
+import { Component, MarkdownRenderer, App } from 'obsidian';
 
 import Changelog from '../CHANGELOG.md';
 
@@ -9,12 +9,12 @@ interface ChangelogSection {
 	contentsEl: HTMLElement;
 }
 
-export function getSections(parent: Component): Map<string, ChangelogSection> {
+export function getSections(app: App, parent: Component): Map<string, ChangelogSection> {
 	const frag = document.createDocumentFragment();
 	const renderedEl = frag.createDiv();
 
 	// Render the markdown.
-	MarkdownRenderer.renderMarkdown(Changelog, renderedEl, '', parent);
+	MarkdownRenderer.render(app, Changelog, renderedEl, '', parent);
 
 	// Extract the sections into details elements.
 	const sections = new Map<string, ChangelogSection>();
