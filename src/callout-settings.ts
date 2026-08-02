@@ -57,7 +57,7 @@ export function calloutSettingsToStyles(
 
 		// Build the styles.
 		const { changes } = setting;
-		if (changes.color != null) styles.push(`--callout-color: ${changes.color}`);
+		if (changes.color != null) styles.push(`--callout-color: ${formatCalloutColor(changes.color)}`);
 		if (changes.icon != null) styles.push(`--callout-icon: ${changes.icon}`);
 		if (changes.customStyles != null) styles.push(changes.customStyles);
 	}
@@ -65,6 +65,11 @@ export function calloutSettingsToStyles(
 	return styles;
 }
 
+function formatCalloutColor(color: string): string {
+	const trimmed = color.trim();
+	const isBareTuple = /^\d+\s*,\s*\d+\s*,\s*\d+$/.test(trimmed);
+	return isBareTuple ? `rgb(${trimmed})` : trimmed;
+}
 /**
  * Recursively checks a {@link CalloutSettingsCondition}.
  *
