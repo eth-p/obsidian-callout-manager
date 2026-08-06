@@ -5,7 +5,8 @@
 	"type": "module",
 	"exports": {
 		"import": "./dist/api-esm.mjs",
-		"require": "./dist/api-cjs.js"
+		"require": "./dist/api-cjs.js",
+		"types": "./dist/api.d.ts"
 	},
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
