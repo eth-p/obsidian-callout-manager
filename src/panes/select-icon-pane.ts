@@ -146,7 +146,7 @@ export class SelectIconPane extends UIPane<void> {
 		// Add a delegated click listener.
 		gridEl.addEventListener('click', ({ targetNode }) => {
 			for (; targetNode != null && targetNode !== gridEl; targetNode = targetNode.parentElement) {
-				if (!(targetNode instanceof HTMLElement)) continue;
+				if (!targetNode.instanceOf(HTMLElement)) continue;
 				const iconId = targetNode.getAttribute('data-icon-id');
 				if (iconId != null) {
 					recentIcons.add(iconId);

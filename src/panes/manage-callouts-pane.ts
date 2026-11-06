@@ -77,7 +77,7 @@ export class ManageCalloutsPane extends UIPane {
 		let id = null;
 		let action = null;
 		for (let target = evt.targetNode; target != null && (id == null || action == null); target = target?.parentElement) {
-			if (!(target instanceof Element)) continue;
+			if (!target.instanceOf(Element)) continue;
 
 			// Find the callout ID.
 			if (id == null) {
